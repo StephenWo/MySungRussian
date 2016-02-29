@@ -190,6 +190,15 @@ public class RuleEngine {
         for(int i = ipa_list.length-1; i>=0; i--){
             String current_ipa = ipa_list[i];
             int index =-1;
+            //checks if b is shown, and make is soft indicator
+            if (current_ipa.contains("->")){
+                int tmp_index = current_ipa.indexOf("->");
+                if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
+                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                }
+                ipa_list[i] = current_ipa;
+            }
+            //checks if indicator shows up, each syllable can have only one vowel, use if else structure
             if(current_ipa.contains("jɑ")){
                 int tmp_index = current_ipa.indexOf("jɑ");
                 if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
@@ -220,13 +229,13 @@ public class RuleEngine {
                     current_ipa = current_ipa.substring(0, tmp_index) + "ʲu" + current_ipa.substring(tmp_index + 2, current_ipa.length());
                 }
                 ipa_list[i] = current_ipa;
-            }else if (current_ipa.contains("->")){
-                int tmp_index = current_ipa.indexOf("->");
-                if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
-                }
-                ipa_list[i] = current_ipa;
             }
+            //makes nj = specical n
+            if(ipa_list[i].contains("nʲ")){
+                System.out.println("nj is detected");
+                ipa_list[i]  = ipa_list[i].replaceAll("nʲ", "ɲ");
+            }
+
         }
         //make ipa_list to String
         for(int i =0 ; i<ipa_list.length;i++){
@@ -236,7 +245,9 @@ public class RuleEngine {
     }
 
     public static void main(String[] args){
-        String word = "Здравствуйте, мир!";
+        //хоронить:xʌ.rɑˈɲitʲ
+        //String word = "Здравствуйте, мир!";
+        String word = "хоронить";
         String ipa = new String();
         //RuleEngine rule = new RuleEngine();
         ipa = Transcribe(word);
