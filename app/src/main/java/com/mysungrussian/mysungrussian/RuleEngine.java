@@ -1,10 +1,13 @@
 package com.mysungrussian.mysungrussian;
 
+import android.content.res.AssetManager;
 import android.util.Log;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.StringTokenizer;
 
 /**
  * Created by hedai on 2016-02-24.
@@ -235,11 +238,58 @@ public class RuleEngine {
         return pal_ipa;
     }
 
+    static String test_words = "меня:mʲiˈɲɑ\n" +
+            "придётся:prʲiˈdjo.tsɑ\n" +
+            "хоронить:xʌ.rɑˈɲitʲ\n" +
+            "-\n" +
+            "Иль:ilʲ\n" +
+            "мне:mʲɲɛ\n" +
+            "тебя:tʲiˈbʲɑ\n" +
+            "не:ɲɪ\n" +
+            "знаю:ˈznɑ.ju\n" +
+            "друг:druk\n" +
+            "мой:moj\n" +
+            "милый:ˈmʲi.ɫɨj\n" +
+            "-\n" +
+            "Но:no\n" +
+            "судьбы:suˈdʲbɨ\n" +
+            "твоей:tvɑˈjej\n" +
+            "прервётся:prʲɪ.ˈrvʲo.tsɑ\n" +
+            "нить:ɲitʲ\n" +
+            "-";
+
     public static void main(String[] args){
-        String word = "Здравствуйте, мир!";
+        /*String word = "Здравствуйте, мир!";
         String ipa = new String();
         //RuleEngine rule = new RuleEngine();
-        ipa = Transcribe(word);
+        ipa = Transcribe(word);*/
+
+
+        // Try to write a test frame here.
+        // The data is just stored in a string called test_word
+        StringTokenizer st = new StringTokenizer(test_words, "\n");
+        while (st.hasMoreTokens()) {
+            String line = st.nextToken();
+
+            if (line.contains("-")){
+                continue;
+            }
+
+            StringTokenizer st2 = new StringTokenizer(line, ":");
+            String word = st2.nextToken();
+            String true_ipa = st2.nextToken();
+            String ipa = "(n/a)";
+            System.out.println("\n+++++++++++++"+word+"+++++++++++++");
+
+            try {
+                ipa = Transcribe(word);
+                System.out.println(":D word = "+word+", true_ipa = "+true_ipa+", ipa = "+ipa);
+            } catch (ArrayIndexOutOfBoundsException e){
+                System.out.println("D: word = "+word+", true_ipa = "+true_ipa+", ipa failed");
+                e.printStackTrace();
+            }
+
+        }
     }
 
     //This function prints a String[]
