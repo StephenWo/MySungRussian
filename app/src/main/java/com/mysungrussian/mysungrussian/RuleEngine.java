@@ -11,6 +11,7 @@ import java.util.HashSet;
  */
 public class RuleEngine {
     public static HashMap<String, String[]> cyrillicLib = new HashMap<String, String[]>();
+    public static HashMap<Integer, String[]> tmp_syllables = new HashMap<Integer, String[]>();
 
     static {
         /*ʲ
@@ -71,12 +72,12 @@ public class RuleEngine {
         cyrillicLib.put("ш", new String[]{"C", "ʃɑ", "ʃ", "ʒ"});
         cyrillicLib.put("Щ", new String[]{"C", "ʃtʃɑ", "ʃtʃ"});
         cyrillicLib.put("щ", new String[]{"C", "ʃtʃɑ", "ʃtʃ"});
-        cyrillicLib.put("Ъ", new String[]{"S", "ˈtvʲor.dɨj znɑk"});
-        cyrillicLib.put("ъ", new String[]{"S", "ˈtvʲor.dɨj znɑk"});
+        cyrillicLib.put("Ъ", new String[]{"S", "ˈtvʲor.dɨj znɑk",""});
+        cyrillicLib.put("ъ", new String[]{"S", "ˈtvʲor.dɨj znɑk",""});
         cyrillicLib.put("Ы", new String[]{"V", "ɨ", "ɨ"});
         cyrillicLib.put("ы", new String[]{"V", "ɨ", "ɨ"});
-        cyrillicLib.put("Ь", new String[]{"S", "ˈmʲax_͜kʲij znɑk"});
-        cyrillicLib.put("ь", new String[]{"S", "ˈmʲax_͜kʲij znɑk"});
+        cyrillicLib.put("Ь", new String[]{"S", "ˈmʲax_͜kʲij znɑk","->"});
+        cyrillicLib.put("ь", new String[]{"S", "ˈmʲax_͜kʲij znɑk","->"});
         cyrillicLib.put("Э", new String[]{"V", "ɛ", "ɛ", "e"});
         cyrillicLib.put("э", new String[]{"V", "ɛ", "ɛ", "e"});
         cyrillicLib.put("Ю", new String[]{"VI", "ju", "ju"});
@@ -98,15 +99,12 @@ public class RuleEngine {
     public static String Transcribe(String word) {
         String[] words = word.split("\\P{L}+");
         String ipa = new String();
-        //++++++++++++Need to be fixed calling helper for the first word
-        //Transcribe_helper(words[1]);
 
         for(int i = 0; i< words.length;i++) {
             String tmp_ipa = Transcribe_helper(words[i]);
             tmp_ipa = tmp_ipa.substring(0,tmp_ipa.length()-1);
             ipa = ipa + "/"+ tmp_ipa + "/ " ;
         }
-
 
         System.out.println("word = " + word);
         System.out.println("ipa = " + ipa);
@@ -126,7 +124,6 @@ public class RuleEngine {
             String key = word_array[i];
             String[] value = (String[])cyrillicLib.get(key);
 
-
             word_hash.put(key, value);
             String vcs = value[0];
             //divide into syllables
@@ -144,9 +141,11 @@ public class RuleEngine {
                 ipa = ipa + value[2] + ".";
                 word_part = word_part.substring(1,word_part.length());
             }else{
-                //check if the syllable contains vowel
-                boolean contain = checkContainVowels(word_part);
-                if(contain == false){
+                String last_char = "";
+                if(ipa.length() - 1 >= 0) {
+                    last_char = ipa.substring(ipa.length() - 1);
+                }
+                if(!checkContainVowels(word_part) && last_char.equals(".")){
                     ipa = ipa.substring(0,ipa.length()-1);
                     word_VCS = word_VCS.substring(0,word_VCS.length()-1);
                 }
@@ -157,8 +156,7 @@ public class RuleEngine {
         }
         ipa = ipa +".";
         word_VCS = word_VCS + ".";
-        //System.out.println("VCS = " + word_VCS);
-        ipa = palatalization(ipa);
+        ipa = palatalization(ipa, word);
         return ipa;
     }
 
@@ -173,7 +171,7 @@ public class RuleEngine {
     }
 
     private static boolean check_palatalization(String words){
-        HashSet<String> set = new HashSet<String>(Arrays.asList("p","b","t","d","k","ɡ","f","s","ʃ","x","v","z","r","m"));
+        HashSet<String> set = new HashSet<String>(Arrays.asList("p","b","t","d","k","ɡ","f","s","ʃ","x","v","z","r","m","n"));
         for (String word : set) {
             if (words.contains(word)) {
                 return true;
@@ -186,7 +184,7 @@ public class RuleEngine {
     /*++++++++++++Need to be fixed
     *Case for b is not contained yet
     */
-    private static String palatalization(String ipa){
+    private static String palatalization(String ipa, String word){
         String pal_ipa = new String();
         String[] ipa_list = ipa.split("\\.");
         for(int i = ipa_list.length-1; i>=0; i--){
@@ -222,6 +220,12 @@ public class RuleEngine {
                     current_ipa = current_ipa.substring(0, tmp_index) + "ʲju" + current_ipa.substring(tmp_index + 2, current_ipa.length());
                 }
                 ipa_list[i] = current_ipa;
+            }else if (current_ipa.contains("->")){
+                int tmp_index = current_ipa.indexOf("->");
+                if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
+                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                }
+                ipa_list[i] = current_ipa;
             }
         }
         //make ipa_list to String
@@ -232,13 +236,14 @@ public class RuleEngine {
     }
 
     public static void main(String[] args){
-        String word = "Здравствуйте, мир!";
+        //String word = "Здравствуйте, мир!";
+        String word = "Здравствуйть, мир!";
         String ipa = new String();
         //RuleEngine rule = new RuleEngine();
         ipa = Transcribe(word);
     }
 
-
+    //This function prints a String[]
     public static void testPrint(String name, String[] words) {
         for (int i = 0; i < words.length; i++) {
             System.out.println("the position is " + name + " word = " + words[i]);
