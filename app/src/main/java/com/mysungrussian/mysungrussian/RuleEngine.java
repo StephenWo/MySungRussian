@@ -193,7 +193,7 @@ public class RuleEngine {
             if(current_ipa.contains("jɑ")){
                 int tmp_index = current_ipa.indexOf("jɑ");
                 if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲjɑ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲɑ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
                 }
                 ipa_list[i] = current_ipa;
             }else if(current_ipa.contains("jɛ")){
@@ -211,13 +211,13 @@ public class RuleEngine {
             }else if (current_ipa.contains("jo")){
                 int tmp_index = current_ipa.indexOf("jo");
                 if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲjo" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲo" + current_ipa.substring(tmp_index + 2, current_ipa.length());
                 }
                 ipa_list[i] = current_ipa;
             }else if (current_ipa.contains("ju")){
                 int tmp_index = current_ipa.indexOf("ju");
                 if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲju" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲu" + current_ipa.substring(tmp_index + 2, current_ipa.length());
                 }
                 ipa_list[i] = current_ipa;
             }else if (current_ipa.contains("->")){
@@ -236,8 +236,7 @@ public class RuleEngine {
     }
 
     public static void main(String[] args){
-        //String word = "Здравствуйте, мир!";
-        String word = "Здравствуйть, мир!";
+        String word = "Здравствуйте, мир!";
         String ipa = new String();
         //RuleEngine rule = new RuleEngine();
         ipa = Transcribe(word);
