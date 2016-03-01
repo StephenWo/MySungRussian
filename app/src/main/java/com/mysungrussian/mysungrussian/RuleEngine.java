@@ -14,6 +14,13 @@ import java.util.StringTokenizer;
  */
 public class RuleEngine {
     public static HashMap<String, String[]> cyrillicLib = new HashMap<String, String[]>();
+
+    /*tmp_syllables is in the form of {word} {aaa.bbb.ccc.}  this is used for calling different process on the ipas
+    *the first process is palatalizaiont
+    */
+    public static String[] unvoiced  = {"f","k","p","s","ʃ","t","x"};
+    public static String[] voiced  = {"v","ɡ","b","z","ʒ","d","ɣ"};
+
     public static HashMap<Integer, String[]> tmp_syllables = new HashMap<Integer, String[]>();
 
     static {
@@ -69,8 +76,8 @@ public class RuleEngine {
         cyrillicLib.put("х", new String[]{"C", "xɑ", "x", "ɣ"});
         cyrillicLib.put("Ц", new String[]{"C", "tsɛ", "ts"});
         cyrillicLib.put("ц", new String[]{"C", "tsɛ", "ts"});
-        cyrillicLib.put("Ч", new String[]{"C", "tʃɛ", "tʃj", "ʃ"});
-        cyrillicLib.put("ч", new String[]{"C", "tʃɛ", "tʃj", "ʃ"});
+        cyrillicLib.put("Ч", new String[]{"C", "tʃɛ", "tʃʲ", "ʃ"});
+        cyrillicLib.put("ч", new String[]{"C", "tʃɛ", "tʃʲ", "ʃ"});
         cyrillicLib.put("Ш", new String[]{"C", "ʃɑ", "ʃ", "ʒ"});
         cyrillicLib.put("ш", new String[]{"C", "ʃɑ", "ʃ", "ʒ"});
         cyrillicLib.put("Щ", new String[]{"C", "ʃtʃɑ", "ʃtʃ"});
@@ -105,10 +112,20 @@ public class RuleEngine {
 
         for(int i = 0; i< words.length;i++) {
             String tmp_ipa = Transcribe_helper(words[i]);
-            tmp_ipa = tmp_ipa.substring(0,tmp_ipa.length()-1);
-            ipa = ipa + "/"+ tmp_ipa + "/ " ;
+            tmp_syllables.put(i, new String[]{words[i],tmp_ipa});
         }
 
+        for (int i = 0; i<tmp_syllables.size();i++){
+            String tmp_ipa =palatalization(tmp_syllables.get(i)[1]);
+            tmp_ipa = changeVoiced(tmp_ipa);
+            tmp_syllables.put(i, new String[]{words[i],tmp_ipa});
+        }
+
+        for (int i = 0; i<tmp_syllables.size();i++){
+            ipa = ipa + tmp_syllables.get(i)[1];
+            ipa = ipa.substring(0,ipa.length()-1);
+            ipa = "/"+ ipa + "/ " ;
+        }
         System.out.println("word = " + word);
         System.out.println("ipa = " + ipa);
         return ipa;
@@ -159,7 +176,7 @@ public class RuleEngine {
         }
         ipa = ipa +".";
         word_VCS = word_VCS + ".";
-        ipa = palatalization(ipa, word);
+        //ipa = palatalization(ipa, word);
         return ipa;
     }
 
@@ -174,7 +191,7 @@ public class RuleEngine {
     }
 
     private static boolean check_palatalization(String words){
-        HashSet<String> set = new HashSet<String>(Arrays.asList("p","b","t","d","k","ɡ","f","s","ʃ","x","v","z","r","m","n"));
+        HashSet<String> set = new HashSet<String>(Arrays.asList("p","b","t","d","k","ɡ","f","s","ʃ","x","v","z","r","m","n","l"));
         for (String word : set) {
             if (words.contains(word)) {
                 return true;
@@ -183,59 +200,104 @@ public class RuleEngine {
         return false;
     }
 
+
     //palatalization process
     /*++++++++++++Need to be fixed
     *Case for b is not contained yet
     */
-    private static String palatalization(String ipa, String word){
+    private static String palatalization(String ipa){
         String pal_ipa = new String();
         String[] ipa_list = ipa.split("\\.");
         for(int i = ipa_list.length-1; i>=0; i--){
             String current_ipa = ipa_list[i];
             int index =-1;
-            if(current_ipa.contains("jɑ")){
-                int tmp_index = current_ipa.indexOf("jɑ");
-                if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲɑ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
-                }
-                ipa_list[i] = current_ipa;
-            }else if(current_ipa.contains("jɛ")){
-                int tmp_index = current_ipa.indexOf("jɛ");
-                if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲɪ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
-                }
-                ipa_list[i] = current_ipa;
-            }else if(current_ipa.contains("i")){
-                int tmp_index = current_ipa.indexOf("i");
-                if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))){
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲi" + current_ipa.substring(tmp_index + 1, current_ipa.length());
-                }
-                ipa_list[i] = current_ipa;
-            }else if (current_ipa.contains("jo")){
-                int tmp_index = current_ipa.indexOf("jo");
-                if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲo" + current_ipa.substring(tmp_index + 2, current_ipa.length());
-                }
-                ipa_list[i] = current_ipa;
-            }else if (current_ipa.contains("ju")){
-                int tmp_index = current_ipa.indexOf("ju");
-                if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲu" + current_ipa.substring(tmp_index + 2, current_ipa.length());
-                }
-                ipa_list[i] = current_ipa;
-            }else if (current_ipa.contains("->")){
+            //checks if b is shown, and make is soft indicator
+            if (current_ipa.contains("->")){
                 int tmp_index = current_ipa.indexOf("->");
                 if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
                     current_ipa = current_ipa.substring(0, tmp_index) + "ʲ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
                 }
                 ipa_list[i] = current_ipa;
             }
+            //checks if indicator shows up, each syllable can have only one vowel, use if else structure
+            if(current_ipa.contains("jɑ")){
+                int tmp_index = current_ipa.indexOf("jɑ");
+                if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
+                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲɑ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                }
+                ipa_list[i] = current_ipa;
+            }else if(current_ipa.contains("jɛ")){
+                int tmp_index = current_ipa.indexOf("jɛ");
+                if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
+                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲɛ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                }
+                ipa_list[i] = current_ipa;
+            }else if(current_ipa.contains("i")){
+                int tmp_index = current_ipa.indexOf("i");
+                if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))){
+                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲi" + current_ipa.substring(tmp_index + 1, current_ipa.length());
+                }
+                ipa_list[i] = current_ipa;
+            }else if (current_ipa.contains("jo")){
+                int tmp_index = current_ipa.indexOf("jo");
+                if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
+                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲo" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                }
+                ipa_list[i] = current_ipa;
+            }else if (current_ipa.contains("ju")){
+                int tmp_index = current_ipa.indexOf("ju");
+                if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
+                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲu" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                }
+                ipa_list[i] = current_ipa;
+            }
+            //makes nj = specical n
+            if(ipa_list[i].contains("nʲ")){
+                ipa_list[i]  = ipa_list[i].replaceAll("nʲ", "ɲ");
+            }
+
         }
         //make ipa_list to String
         for(int i =0 ; i<ipa_list.length;i++){
             pal_ipa = pal_ipa + ipa_list[i] + ".";
         }
         return pal_ipa;
+    }
+
+    /*this function does the conversion between voiced and unvoiced
+    *the last voiced char should be changed to unvoiced
+    * */
+    private static String changeVoiced(String ipa){
+        String vol_ipa = new String();
+        String[] ipa_list = ipa.split("\\.");
+        int size = ipa_list.length;
+        //check the last syllable
+        String last_syl = ipa_list[size-1];
+        String last_char = last_syl.substring(last_syl.length()-1,last_syl.length());
+        int pos = checkVoicePosition(last_char,voiced);
+        if(pos!=-1){
+            last_syl = last_syl.substring(0,last_syl.length()-1) + unvoiced[pos];
+            ipa_list[size-1] = last_syl;
+        }
+        
+
+
+        //connect all the ipa into a string
+        for(int i = 0; i<ipa_list.length; i++){
+            vol_ipa = vol_ipa+ipa_list[i] + ".";
+        }
+        return  vol_ipa;
+    }
+
+    private static int checkVoicePosition(String ipa, String[] list){
+        int pos =-1 ;
+        for(int i = 0; i< list.length; i++){
+           if(ipa.equals(list[i])){
+               pos = i;
+               break;
+           }
+        }
+        return pos;
     }
 
     static String test_words = "меня:mʲiˈɲɑ\n" +
@@ -259,10 +321,11 @@ public class RuleEngine {
             "-";
 
     public static void main(String[] args){
-        /*String word = "Здравствуйте, мир!";
-        String ipa = new String();
-        //RuleEngine rule = new RuleEngine();
-        ipa = Transcribe(word);*/
+        //хоронить:xʌ.rɑˈɲitʲ
+        //String word = "Здравствуйте, мир!";
+        String word2 = "друг";
+        String ipa2 = new String();
+        ipa2 = Transcribe(word2);
 
 
         // Try to write a test frame here.
