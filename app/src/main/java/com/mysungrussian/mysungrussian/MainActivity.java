@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity
 
     public void onClickTranscribe (View v){
         hideSoftKeyboard();
-        
+
     }
     private void hideSoftKeyboard() {
         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
