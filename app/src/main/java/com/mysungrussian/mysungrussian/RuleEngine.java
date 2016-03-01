@@ -24,7 +24,7 @@ public class RuleEngine {
     public static HashSet<String> pal_consant_set = new HashSet<String>(Arrays.asList("p","b","t","d","k","ɡ","f","s","ʃ","x","v","z","r","m","n","l"));
     public static HashSet<String> voiced_set = new HashSet<String>(Arrays.asList("v","ɡ","b","z","ʒ","d","ɣ"));
     public static HashSet<String> unvoiced_set = new HashSet<String>(Arrays.asList("f","k","p","s","ʃ","t","x"));
-    public static HashMap<Integer, String[]> tmp_syllables = new HashMap<Integer, String[]>();
+    //public static HashMap<Integer, String[]> tmp_syllables = new HashMap<Integer, String[]>();
 
     static {
         /*ʲ
@@ -112,9 +112,10 @@ public class RuleEngine {
     public static String Transcribe(String word) {
         String[] words = word.split("\\P{L}+");
         String ipa = new String();
+        HashMap<Integer, String[]> tmp_syllables = new HashMap<Integer, String[]>();
 
         for(int i = 0; i< words.length;i++) {
-            System.out.println("words are " + words[i]);
+            //System.out.println("words are " + words[i]);
             String tmp_ipa = Transcribe_helper(words[i]);
             tmp_syllables.put(i, new String[]{words[i],tmp_ipa});
         }
@@ -333,7 +334,8 @@ public class RuleEngine {
         return pos;
     }
 
-    static String test_words = "меня:mʲiˈɲɑ\n" +
+    static String test_words =  "Здравствуйте, мир!:xx\n" +
+            "меня:mʲiˈɲɑ\n" +
             "придётся:prʲiˈdjo.tsɑ\n" +
             "хоронить:xʌ.rɑˈɲitʲ\n" +
             "-\n" +
@@ -351,7 +353,7 @@ public class RuleEngine {
             "твоей:tvɑˈjej\n" +
             "прервётся:prʲɪ.ˈrvʲo.tsɑ\n" +
             "нить:ɲitʲ\n" +
-            "-";
+            "-\n";
 
     public static void main(String[] args){
         //хоронить:xʌ.rɑˈɲitʲ
@@ -380,9 +382,11 @@ public class RuleEngine {
             try {
                 ipa = Transcribe(word);
                 System.out.println(":D word = "+word+", true_ipa = "+true_ipa+", ipa = "+ipa);
+
             } catch (ArrayIndexOutOfBoundsException e){
                 System.out.println("D: word = "+word+", true_ipa = "+true_ipa+", ipa failed");
                 e.printStackTrace();
+
             }
 
         }
