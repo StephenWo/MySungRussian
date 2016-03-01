@@ -10,7 +10,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d("mtTag", "Teeeesting the git");
+        getIPA();
+    }
+
+    private String getIPA(){
+        String word = "Здравствуйте, мир!";
+        String ipa = new String();
+        RuleEngine rule = new RuleEngine();
+        ipa = rule.Transcribe(word);
+        return ipa;
     }
 }
 
