@@ -20,7 +20,10 @@ public class RuleEngine {
     */
     public static String[] unvoiced  = {"f","k","p","s","ʃ","t","x"};
     public static String[] voiced  = {"v","ɡ","b","z","ʒ","d","ɣ"};
-
+    public static HashSet<String> vowel_set = new HashSet<String>(Arrays.asList("а", "э", "ы", "у", "о", "я", "е", "ё", "ю", "и","А", "Э", "Ы", "У", "О", "Я", "Е", "Ё", "Ю", "И"));
+    public static HashSet<String> pal_consant_set = new HashSet<String>(Arrays.asList("p","b","t","d","k","ɡ","f","s","ʃ","x","v","z","r","m","n","l"));
+    public static HashSet<String> voiced_set = new HashSet<String>(Arrays.asList("v","ɡ","b","z","ʒ","d","ɣ"));
+    public static HashSet<String> unvoiced_set = new HashSet<String>(Arrays.asList("f","k","p","s","ʃ","t","x"));
     public static HashMap<Integer, String[]> tmp_syllables = new HashMap<Integer, String[]>();
 
     static {
@@ -111,6 +114,7 @@ public class RuleEngine {
         String ipa = new String();
 
         for(int i = 0; i< words.length;i++) {
+            System.out.println("words are " + words[i]);
             String tmp_ipa = Transcribe_helper(words[i]);
             tmp_syllables.put(i, new String[]{words[i],tmp_ipa});
         }
@@ -122,9 +126,10 @@ public class RuleEngine {
         }
 
         for (int i = 0; i<tmp_syllables.size();i++){
-            ipa = ipa + tmp_syllables.get(i)[1];
-            ipa = ipa.substring(0,ipa.length()-1);
-            ipa = "/"+ ipa + "/ " ;
+            String tmp_ipa="";
+            tmp_ipa = tmp_ipa + tmp_syllables.get(i)[1];
+            tmp_ipa = "/" + tmp_ipa.substring(0,tmp_ipa.length()-1) + "/ ";
+            ipa = ipa + tmp_ipa;
         }
         System.out.println("word = " + word);
         System.out.println("ipa = " + ipa);
@@ -255,6 +260,9 @@ public class RuleEngine {
             if(ipa_list[i].contains("nʲ")){
                 ipa_list[i]  = ipa_list[i].replaceAll("nʲ", "ɲ");
             }
+            if(ipa_list[i].contains("tsʲ")){
+                ipa_list[i]  = ipa_list[i].replaceAll("tsʲ", "ts");
+            }
 
         }
         //make ipa_list to String
@@ -266,7 +274,19 @@ public class RuleEngine {
 
     /*this function does the conversion between voiced and unvoiced
     *the last voiced char should be changed to unvoiced
+    * any unvocied with voicied should be changed
+    * case when two words affect each other has not been considered
     * */
+    private static boolean checkContains(String words, HashSet<String> set){
+        //HashSet<String> set = set;
+        for (String word : set) {
+            if (words.contains(word)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static String changeVoiced(String ipa){
         String vol_ipa = new String();
         String[] ipa_list = ipa.split("\\.");
@@ -276,11 +296,10 @@ public class RuleEngine {
         String last_char = last_syl.substring(last_syl.length()-1,last_syl.length());
         int pos = checkVoicePosition(last_char,voiced);
         if(pos!=-1){
-            last_syl = last_syl.substring(0,last_syl.length()-1) + unvoiced[pos];
+            last_syl = last_syl.substring(0,last_syl.length()-1);
+            last_syl = changeVoicedHelper(last_syl) + unvoiced[pos];
             ipa_list[size-1] = last_syl;
         }
-        
-
 
         //connect all the ipa into a string
         for(int i = 0; i<ipa_list.length; i++){
@@ -289,10 +308,24 @@ public class RuleEngine {
         return  vol_ipa;
     }
 
-    private static int checkVoicePosition(String ipa, String[] list){
+    private static String changeVoicedHelper(String unvoiced_ipa){
+        if(checkContains(unvoiced_ipa,voiced_set))
+            for(int i = 0; i< unvoiced_ipa.length(); i++){
+                String single_char = unvoiced_ipa.substring(i, i+1);
+                int pos = checkVoicePosition(single_char,unvoiced);
+                if(pos != -1){
+                    String tmp_ipa = voiced[pos];
+                    unvoiced_ipa=unvoiced_ipa.substring(0, i) + tmp_ipa + unvoiced_ipa.substring(i+1, unvoiced_ipa.length());
+                }
+        }
+
+        return unvoiced_ipa;
+    }
+
+    private static int checkVoicePosition(String single_ipa, String[] list){
         int pos =-1 ;
         for(int i = 0; i< list.length; i++){
-           if(ipa.equals(list[i])){
+           if(single_ipa.equals(list[i])){
                pos = i;
                break;
            }
@@ -322,8 +355,8 @@ public class RuleEngine {
 
     public static void main(String[] args){
         //хоронить:xʌ.rɑˈɲitʲ
-        //String word = "Здравствуйте, мир!";
-        String word2 = "друг";
+        //String word2 = "Здравствуйте, мир!";
+        String word2 = "Здравствуйте";
         String ipa2 = new String();
         ipa2 = Transcribe(word2);
 
