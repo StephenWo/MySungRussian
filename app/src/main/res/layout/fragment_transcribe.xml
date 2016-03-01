@@ -11,7 +11,8 @@
         android:layout_height="wrap_content"
         android:text="Transcribe!"
         android:id="@+id/btn"
-        android:layout_gravity="right|center_vertical" />
+        android:layout_gravity="right|center_vertical"
+        android:onClick="onClickTranscribe"/>
 
     <EditText
         android:layout_margin="50dp"
@@ -19,7 +20,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/input_field"
         android:layout_gravity="left|top"
-        android:text="Привет мир"/>
+        android:text="Здравствуйте, мир!"/>
 
     <EditText
         android:layout_margin="50dp"
@@ -27,6 +28,6 @@
         android:layout_height="wrap_content"
         android:id="@+id/output_field"
         android:layout_gravity="left|bottom"
-        android:text="/prʲɪˈvʲet ˈmir/"/>
+        android:text="/zdrɑ.vstvuj.tʲɪ/ /mʲir/ "/>
 
 </FrameLayout>
