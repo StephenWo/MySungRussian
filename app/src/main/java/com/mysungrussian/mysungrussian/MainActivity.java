@@ -3,6 +3,7 @@ package com.mysungrussian.mysungrussian;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -54,9 +55,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void onClickTranscribe (View v){
-        hideSoftKeyboard();
+        //hideSoftKeyboard();
+        // Check if no view has focus:
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+
         EditText input_field = (EditText) findViewById(R.id.input_field);
         String input_words = input_field.getText().toString();
+        input_field.clearFocus();
+
         Log.d("Che", "transcribing, the input is: " +input_words);
 
         if (!input_words.isEmpty()) {
@@ -64,10 +74,25 @@ public class MainActivity extends AppCompatActivity
             Log.d("Che", "transcribing, the output is: " + output_ipas);
 
             EditText output_field = (EditText) findViewById(R.id.output_field);
+            output_field.clearFocus();
             output_field.setText(output_ipas);
         }
 
     }
+    /*public void onClickInputField (View v) {
+        //hideSoftKeyboard();
+        // Check if no view has focus:
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+
+        EditText input_field = (EditText) findViewById(R.id.input_field);
+        input_field.clearFocus();
+        input_field.hasFocus();
+    }*/
+
     private void hideSoftKeyboard() {
         if (getCurrentFocus()!=null) {
             InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);

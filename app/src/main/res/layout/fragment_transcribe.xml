@@ -14,12 +14,14 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Transcribe!"
+            android:text="Get IPA!"
             android:id="@+id/btn"
             android:layout_gravity="right|center_vertical"
             android:onClick="onClickTranscribe"
             android:layout_centerVertical="true"
-            android:layout_alignParentEnd="true"/>
+            android:layout_alignParentEnd="true"
+            android:background="#CC3333"
+            android:textColor="#FFFFFF" />
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -42,11 +44,14 @@
                     android:inputType="textMultiLine|textNoSuggestions"
                     android:layout_margin="10dp"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:id="@+id/input_field"
                     android:layout_gravity="left|top"
+                    android:gravity="top|left"
                     android:text="Здравствуйте, мир!"
                     android:background="@android:color/transparent"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
                     />
             </FrameLayout>
 
