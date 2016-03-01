@@ -15,12 +15,16 @@ import android.widget.TextView;
 public class MainActivity extends AppCompatActivity
         implements TranscribeFragment.OnFragmentInteractionListener, SavedFragment.OnFragmentInteractionListener {
     TranscribeFragment transFrag;
+    SavedFragment savedFrag;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         transFrag = new TranscribeFragment();
+        savedFrag = new SavedFragment();
+
 
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -38,7 +42,11 @@ public class MainActivity extends AppCompatActivity
                 fragmentTransaction.commit();
                 break;
             case R.id.btn_saved:
-                SavedFragment savedFrag = new SavedFragment();
+                fragmentTransaction.replace(R.id.fragment_container, savedFrag);
+                fragmentTransaction.commit();
+                break;
+            case R.id.btn_learn:
+                //Just put the same empty fragment here
                 fragmentTransaction.replace(R.id.fragment_container, savedFrag);
                 fragmentTransaction.commit();
                 break;
@@ -55,14 +63,16 @@ public class MainActivity extends AppCompatActivity
             String output_ipas = RuleEngine.Transcribe(input_words);
             Log.d("Che", "transcribing, the output is: " + output_ipas);
 
-            TextView output_field = (TextView) findViewById(R.id.output_field);
+            EditText output_field = (EditText) findViewById(R.id.output_field);
             output_field.setText(output_ipas);
         }
 
     }
     private void hideSoftKeyboard() {
-        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow( getCurrentFocus().getWindowToken(), 0);
+        if (getCurrentFocus()!=null) {
+            InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        }
     }
 
 

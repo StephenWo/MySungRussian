@@ -6,30 +6,79 @@
 
     <!-- TODO: Update blank fragment layout -->
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Transcribe!"
-        android:id="@+id/btn"
-        android:layout_gravity="right|center_vertical"
-        android:onClick="onClickTranscribe"/>
-
-    <EditText
-        android:inputType="textMultiLine"
-        android:layout_margin="50dp"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/input_field"
-        android:layout_gravity="left|top"
-        android:text="Здравствуйте, мир!"
-        />
+        android:layout_height="match_parent"
+        android:layout_gravity="center">
 
-    <TextView
-        android:layout_margin="50dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/output_field"
-        android:layout_gravity="left|bottom"
-        />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Transcribe!"
+            android:id="@+id/btn"
+            android:layout_gravity="right|center_vertical"
+            android:onClick="onClickTranscribe"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"/>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_above="@id/btn"
+            android:layout_gravity="center_horizontal|top"
+            android:layout_margin="10dp"
+            android:background="#c8c8c8"
+            android:id="@+id/frameLayout">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:background="#ffffff"
+                android:layout_margin="1dp">
+
+                <EditText
+                    android:inputType="textMultiLine|textNoSuggestions"
+                    android:layout_margin="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/input_field"
+                    android:layout_gravity="left|top"
+                    android:text="Здравствуйте, мир!"
+                    android:background="@android:color/transparent"
+                    />
+            </FrameLayout>
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_below="@id/btn"
+            android:layout_gravity="left|top"
+            android:layout_margin="10dp"
+            android:background="#c8c8c8">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:background="#ffffff"
+                android:layout_margin="1dp">
+
+                <EditText
+                    android:layout_margin="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/output_field"
+                    android:layout_gravity="left|top"
+                    android:background="#ffffff"
+                    android:inputType="textNoSuggestions"
+                    />
+            </FrameLayout>
+        </FrameLayout>
+    </RelativeLayout>
 
 </FrameLayout>
