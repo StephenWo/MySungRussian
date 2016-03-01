@@ -76,8 +76,8 @@ public class RuleEngine {
         cyrillicLib.put("х", new String[]{"C", "xɑ", "x", "ɣ"});
         cyrillicLib.put("Ц", new String[]{"C", "tsɛ", "ts"});
         cyrillicLib.put("ц", new String[]{"C", "tsɛ", "ts"});
-        cyrillicLib.put("Ч", new String[]{"C", "tʃɛ", "tʃj", "ʃ"});
-        cyrillicLib.put("ч", new String[]{"C", "tʃɛ", "tʃj", "ʃ"});
+        cyrillicLib.put("Ч", new String[]{"C", "tʃɛ", "tʃʲ", "ʃ"});
+        cyrillicLib.put("ч", new String[]{"C", "tʃɛ", "tʃʲ", "ʃ"});
         cyrillicLib.put("Ш", new String[]{"C", "ʃɑ", "ʃ", "ʒ"});
         cyrillicLib.put("ш", new String[]{"C", "ʃɑ", "ʃ", "ʒ"});
         cyrillicLib.put("Щ", new String[]{"C", "ʃtʃɑ", "ʃtʃ"});
@@ -279,6 +279,10 @@ public class RuleEngine {
             last_syl = last_syl.substring(0,last_syl.length()-1) + unvoiced[pos];
             ipa_list[size-1] = last_syl;
         }
+        
+
+
+        //connect all the ipa into a string
         for(int i = 0; i<ipa_list.length; i++){
             vol_ipa = vol_ipa+ipa_list[i] + ".";
         }
