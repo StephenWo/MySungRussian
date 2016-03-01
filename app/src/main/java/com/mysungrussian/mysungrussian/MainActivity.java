@@ -6,8 +6,11 @@ import android.app.FragmentTransaction;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity
         implements TranscribeFragment.OnFragmentInteractionListener, SavedFragment.OnFragmentInteractionListener {
@@ -44,6 +47,17 @@ public class MainActivity extends AppCompatActivity
 
     public void onClickTranscribe (View v){
         hideSoftKeyboard();
+        EditText input_field = (EditText) findViewById(R.id.input_field);
+        String input_words = input_field.getText().toString();
+        Log.d("Che", "transcribing, the input is: " +input_words);
+
+        if (!input_words.isEmpty()) {
+            String output_ipas = RuleEngine.Transcribe(input_words);
+            Log.d("Che", "transcribing, the output is: " + output_ipas);
+
+            TextView output_field = (TextView) findViewById(R.id.output_field);
+            output_field.setText(output_ipas);
+        }
 
     }
     private void hideSoftKeyboard() {

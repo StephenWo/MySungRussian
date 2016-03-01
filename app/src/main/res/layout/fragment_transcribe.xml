@@ -15,19 +15,21 @@
         android:onClick="onClickTranscribe"/>
 
     <EditText
+        android:inputType="textMultiLine"
         android:layout_margin="50dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/input_field"
         android:layout_gravity="left|top"
-        android:text="Здравствуйте, мир!"/>
+        android:text="Здравствуйте, мир!"
+        />
 
-    <EditText
+    <TextView
         android:layout_margin="50dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/output_field"
         android:layout_gravity="left|bottom"
-        android:text="/zdrɑ.vstvuj.tʲɪ/ /mʲir/ "/>
+        />
 
 </FrameLayout>
