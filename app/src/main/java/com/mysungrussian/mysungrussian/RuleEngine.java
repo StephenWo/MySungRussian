@@ -1,13 +1,8 @@
 package com.mysungrussian.mysungrussian;
 
-import android.content.res.AssetManager;
-import android.util.Log;
-
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.StringTokenizer;
 
 /**
  * Created by hedai on 2016-02-24.
@@ -18,17 +13,16 @@ public class RuleEngine {
     /*tmp_syllables is in the form of {word} {aaa.bbb.ccc.}  this is used for calling different process on the ipas
     *the first process is palatalizaiont
     */
-    public static String[] unvoiced  = {"f","k","p","s","ʃ","t","x"};
-    public static String[] voiced  = {"v","ɡ","b","z","ʒ","d","ɣ"};
-    public static HashSet<String> vowel_set = new HashSet<String>(Arrays.asList("а", "э", "ы", "у", "о", "я", "е", "ё", "ю", "и","А", "Э", "Ы", "У", "О", "Я", "Е", "Ё", "Ю", "И"));
-    public static HashSet<String> pal_consant_set = new HashSet<String>(Arrays.asList("p","b","t","d","k","ɡ","f","s","ʃ","x","v","z","r","m","n","l"));
-    public static HashSet<String> voiced_set = new HashSet<String>(Arrays.asList("v","ɡ","b","z","ʒ","d","ɣ"));
-    public static HashSet<String> unvoiced_set = new HashSet<String>(Arrays.asList("f","k","p","s","ʃ","t","x"));
+    private static String[] unvoiced  = {"f","k","p","s","ʃ","t","x"};
+    private static String[] voiced  = {"v","ɡ","b","z","ʒ","d","ɣ"};
+    private static HashSet<String> vowel_set = new HashSet<String>(Arrays.asList("а", "э", "ы", "у", "о", "я", "е", "ё", "ю", "и","А", "Э", "Ы", "У", "О", "Я", "Е", "Ё", "Ю", "И"));
+    private static HashSet<String> pal_consant_set = new HashSet<String>(Arrays.asList("p","b","t","d","k","ɡ","f","s","ʃ","x","v","z","r","m","n","l"));
+    private static HashSet<String> voiced_set = new HashSet<String>(Arrays.asList("v","ɡ","b","z","ʒ","d","ɣ"));
+    private static HashSet<String> unvoiced_set = new HashSet<String>(Arrays.asList("f","k","p","s","ʃ","t","x"));
     //public static HashMap<Integer, String[]> tmp_syllables = new HashMap<Integer, String[]>();
 
     static {
-        /*ʲ
-        * Using ^ to cover for small j, need to be fixed
+        /*
         * Hello World Example: Здравствуйте, мир!  IPA:ˈzdrɑ.stvuj.tʲɪ mʲir*/
         //hashmap structure char, V/C/S, {IPAs}
         cyrillicLib.put("А", new String[]{"V", "ɑ", "ɑ", "a"});
@@ -108,21 +102,32 @@ public class RuleEngine {
         cyrillicLib.put("ѳ", new String[]{"C", "ˈfʲi.tɑ", "f", "v"});
     }
 
+    /*
+    * Main function for transcribe. This function gets called from the UI with a string of sentence
+    * as input and gets the ipa String[] list as output
+    * */
+    public static String Transcribe(String sentence) {
+        String sentence_ipa = new String();
 
-    public static String Transcribe(String word) {
-        String[] words = word.split("\\P{L}+");
-        String ipa = new String();
+        //Get the sentence chars'ipa one by one and divide the syllables by "."
+        sentence_ipa = Syllables_divider(sentence);
+        sentence_ipa = palatalization(sentence_ipa);
+
+
+        /*
+        String[] words = sentence.split(" \\P{L}+");
+        String[] ipa_list = new String[words.length];
+
         HashMap<Integer, String[]> tmp_syllables = new HashMap<Integer, String[]>();
 
         for(int i = 0; i< words.length;i++) {
-            //System.out.println("words are " + words[i]);
-            String tmp_ipa = Transcribe_helper(words[i]);
+            String tmp_ipa = Syllables_divider(words[i]);
             tmp_syllables.put(i, new String[]{words[i],tmp_ipa});
         }
 
         for (int i = 0; i<tmp_syllables.size();i++){
             String tmp_ipa =palatalization(tmp_syllables.get(i)[1]);
-            tmp_ipa = changeVoiced(tmp_ipa);
+            //tmp_ipa = changeVoiced(tmp_ipa);
             tmp_syllables.put(i, new String[]{words[i],tmp_ipa});
         }
 
@@ -132,57 +137,62 @@ public class RuleEngine {
             tmp_ipa = "/" + tmp_ipa.substring(0,tmp_ipa.length()-1) + "/ ";
             ipa = ipa + tmp_ipa;
         }
-        System.out.println("word = " + word);
-        System.out.println("ipa = " + ipa);
-        return ipa;
+        */
 
+        System.out.println("sentence = " + sentence);
+        System.out.println("ipa = " + sentence_ipa);
+
+        return sentence_ipa;
     }
 
     //This function transcribe single word to ipa
-    private static String Transcribe_helper(String word) {
+    private static String Syllables_divider(String sentence) {
         String ipa = new String();
-        String[] word_array = word.split("(?!^)");
+        String[] word_array = sentence.split("(?!^)");
         HashMap<String, String[]> word_hash = new HashMap<String, String[]>();
         String word_VCS = new String();
-        String word_part = word;
+        String word_part = sentence;
+        String[] value = new String[word_array.length];
 
         for (int i = 0; i < word_array.length; i++) {
             String key = word_array[i];
-            String[] value = (String[])cyrillicLib.get(key);
-
-            word_hash.put(key, value);
-            String vcs = value[0];
-            //divide into syllables
-            if (key.equals("й") || key.equals("Й")){
-                String[] pre_N = (String[])cyrillicLib.get(word_array[i-1]);
-                if (pre_N[0].equals("V")||pre_N[0].equals("VI")){
-                    word_VCS = word_VCS + value[0] + ".";
-                    word_VCS = word_VCS.substring(0,word_VCS.length()-1);
-                    ipa = ipa.substring(0,ipa.length()-1);
-                    ipa = ipa + value[2] + ".";
-                    word_part = word_part.substring(1,word_part.length());
+            String vcs = new String();
+            //Need to make sure space only shows in the middle of a sentence
+            if (key.equals(" ")) {
+                ipa = ipa.substring(0,ipa.length()-1) + " ";
+            } else {
+                    value = (String[]) cyrillicLib.get(key);
+                    word_hash.put(key, value);
+                    vcs = value[0];
+                    //divide into syllables
+                    if (key.equals("й") || key.equals("Й")) {
+                        String[] pre_N = (String[]) cyrillicLib.get(word_array[i - 1]);
+                        if (pre_N[0].equals("V") || pre_N[0].equals("VI")) {
+                            word_VCS = word_VCS + value[0] + ".";
+                            word_VCS = word_VCS.substring(0, word_VCS.length() - 1);
+                            ipa = ipa.substring(0, ipa.length() - 1);
+                            ipa = ipa + value[2] + ".";
+                            word_part = word_part.substring(1, word_part.length());
+                        }
+                    } else if (vcs.equals("V") || vcs.equals("VI")) {
+                        word_VCS = word_VCS + value[0] + ".";
+                        ipa = ipa + value[2] + ".";
+                        word_part = word_part.substring(1, word_part.length());
+                    } else {
+                        String last_char = "";
+                        if (ipa.length() - 1 >= 0) {
+                            last_char = ipa.substring(ipa.length() - 1);
+                        }
+                        if (!checkContainVowels(word_part) && last_char.equals(".")) {
+                            ipa = ipa.substring(0, ipa.length() - 1);
+                            word_VCS = word_VCS.substring(0, word_VCS.length() - 1);
+                        }
+                        word_VCS = word_VCS + value[0];
+                        ipa = ipa + value[2];
+                        word_part = word_part.substring(1, word_part.length());
                 }
-            }else if (vcs.equals("V")|| vcs.equals("VI")){
-                word_VCS = word_VCS + value[0] + ".";
-                ipa = ipa + value[2] + ".";
-                word_part = word_part.substring(1,word_part.length());
-            }else{
-                String last_char = "";
-                if(ipa.length() - 1 >= 0) {
-                    last_char = ipa.substring(ipa.length() - 1);
-                }
-                if(!checkContainVowels(word_part) && last_char.equals(".")){
-                    ipa = ipa.substring(0,ipa.length()-1);
-                    word_VCS = word_VCS.substring(0,word_VCS.length()-1);
-                }
-                word_VCS = word_VCS + value[0];
-                ipa = ipa + value[2];
-                word_part = word_part.substring(1, word_part.length());
             }
         }
-        ipa = ipa +".";
-        word_VCS = word_VCS + ".";
-        //ipa = palatalization(ipa, word);
         return ipa;
     }
 
@@ -208,12 +218,9 @@ public class RuleEngine {
 
 
     //palatalization process
-    /*++++++++++++Need to be fixed
-    *Case for b is not contained yet
-    */
     private static String palatalization(String ipa){
         String pal_ipa = new String();
-        String[] ipa_list = ipa.split("\\.");
+        String[] ipa_list = ipa.split("  |\\.");
         for(int i = ipa_list.length-1; i>=0; i--){
             String current_ipa = ipa_list[i];
             int index =-1;
@@ -270,6 +277,7 @@ public class RuleEngine {
         for(int i =0 ; i<ipa_list.length;i++){
             pal_ipa = pal_ipa + ipa_list[i] + ".";
         }
+        pal_ipa = pal_ipa.substring(0,pal_ipa.length()-1);
         return pal_ipa;
     }
 
@@ -334,62 +342,12 @@ public class RuleEngine {
         return pos;
     }
 
-    static String test_words =  "Здравствуйте, мир!:xx\n" +
-            "меня:mʲiˈɲɑ\n" +
-            "придётся:prʲiˈdjo.tsɑ\n" +
-            "хоронить:xʌ.rɑˈɲitʲ\n" +
-            "-\n" +
-            "Иль:ilʲ\n" +
-            "мне:mʲɲɛ\n" +
-            "тебя:tʲiˈbʲɑ\n" +
-            "не:ɲɪ\n" +
-            "знаю:ˈznɑ.ju\n" +
-            "друг:druk\n" +
-            "мой:moj\n" +
-            "милый:ˈmʲi.ɫɨj\n" +
-            "-\n" +
-            "Но:no\n" +
-            "судьбы:suˈdʲbɨ\n" +
-            "твоей:tvɑˈjej\n" +
-            "прервётся:prʲɪ.ˈrvʲo.tsɑ\n" +
-            "нить:ɲitʲ\n" +
-            "-\n";
-
     public static void main(String[] args){
         //хоронить:xʌ.rɑˈɲitʲ
         //String word2 = "Здравствуйте, мир!";
-        String word2 = "Здравствуйте";
+        String word2 = "Здравствуйте мир";
         String ipa2 = new String();
         ipa2 = Transcribe(word2);
-
-
-        // Try to write a test frame here.
-        // The data is just stored in a string called test_word
-        StringTokenizer st = new StringTokenizer(test_words, "\n");
-        while (st.hasMoreTokens()) {
-            String line = st.nextToken();
-
-            if (line.contains("-")){
-                continue;
-            }
-
-            StringTokenizer st2 = new StringTokenizer(line, ":");
-            String word = st2.nextToken();
-            String true_ipa = st2.nextToken();
-            String ipa = "(n/a)";
-            System.out.println("\n+++++++++++++"+word+"+++++++++++++");
-
-            try {
-                ipa = Transcribe(word);
-                System.out.println(":D word = "+word+", true_ipa = "+true_ipa+", ipa = "+ipa);
-
-            } catch (ArrayIndexOutOfBoundsException e){
-                System.out.println("D: word = "+word+", true_ipa = "+true_ipa+", ipa failed");
-                e.printStackTrace();
-
-            }
-
-        }
     }
 
     //This function prints a String[]
