@@ -19,6 +19,10 @@ public class RuleEngine {
     private static HashSet<String> pal_consant_set = new HashSet<String>(Arrays.asList("p","b","t","d","k","ɡ","f","s","ʃ","x","v","z","r","m","n","l"));
     private static HashSet<String> voiced_set = new HashSet<String>(Arrays.asList("v","ɡ","b","z","ʒ","d","ɣ"));
     private static HashSet<String> unvoiced_set = new HashSet<String>(Arrays.asList("f","k","p","s","ʃ","t","x"));
+    private static String voiced_string = "vɡbzʒdɣ";
+    private static String unvoiced_string = "fkpsʃtx";
+    private static String sonorant_string = "rmnl";
+    private static String vowel_string ="ɑaʌɛiɪɨou";
     //public static HashMap<Integer, String[]> tmp_syllables = new HashMap<Integer, String[]>();
 
     static {
@@ -112,8 +116,8 @@ public class RuleEngine {
         //Get the sentence chars'ipa one by one and divide the syllables by "."
         sentence_ipa = Syllables_divider(sentence);
         sentence_ipa = palatalization(sentence_ipa);
-
-
+        System.out.println("ipa after pal= " + sentence_ipa);
+        sentence_ipa = changeVoiced(sentence_ipa);
         /*
         String[] words = sentence.split(" \\P{L}+");
         String[] ipa_list = new String[words.length];
@@ -224,7 +228,7 @@ public class RuleEngine {
             for (int i = ipa_list.length - 1; i >= 0; i--) {
                 String current_ipa = ipa_list[i];
                 int index = -1;
-                //checks if b is shown, and make is soft indicator
+                //checks if b is shown, and make is soft indicator-
                 if (current_ipa.contains("->")) {
                     int tmp_index = current_ipa.indexOf("->");
                     if (check_palatalization(current_ipa.substring(tmp_index - 1, tmp_index))) {
@@ -299,10 +303,58 @@ public class RuleEngine {
         }
         return false;
     }
-
+    /*
+    * Process the ipa voice/unvoice
+    * The last char, if vowel/sonorant, ignore, set flag = 0
+    * if voiced, change to unvoiced, set flag = 1
+    * if unvoiced, set flag =2
+    * shift left by one, check char
+    * if char = " ", don't change flag
+    * Q?  special case for "v"?
+    * */
     private static String changeVoiced(String ipa){
-        String vol_ipa = new String();
-        String[] ipa_list = ipa.split("\\.");
+        String vol_ipa = ipa;
+        int flag = -1;
+        for(int i = ipa.length()-1; i>=0; i--){
+            String single_ipa = String.valueOf(ipa.charAt(i));
+            if(i==ipa.length()-1){
+                if(sonorant_string.contains(single_ipa) || vowel_string.contains(single_ipa)){
+                    flag = 0;
+                }else {
+                    if(voiced_string.contains(single_ipa)){
+                        int index = voiced_string.indexOf(single_ipa);
+                        String replaceChar = String.valueOf(unvoiced_string.charAt(index));
+                        vol_ipa = vol_ipa.substring(0, i-1) + replaceChar;
+                    }
+                    flag = 2;
+                }
+            }else{
+                if(flag == 0){
+                    if(voiced_string.contains(single_ipa)){flag =1;}
+                    else if (unvoiced_string.contains(single_ipa)){flag =2;}
+                }else if(flag == 1 ){
+                    if(sonorant_string.contains(single_ipa) || vowel_string.contains(single_ipa)){
+                        flag =0;
+                    }else if(unvoiced_string.contains(single_ipa)){
+                        int index = unvoiced_string.indexOf(single_ipa);
+                        String replaceChar = String.valueOf(voiced_string.charAt(index));
+                        vol_ipa = vol_ipa.substring(0, i-1) + replaceChar + vol_ipa.substring(i+1,vol_ipa.length());
+                    }
+                }else if(flag == 2){
+                    if(sonorant_string.contains(single_ipa) || vowel_string.contains(single_ipa)){
+                        flag =0;
+                    }else if(voiced_string.contains(single_ipa)){
+                        int index = voiced_string.indexOf(single_ipa);
+                        String replaceChar = String.valueOf(unvoiced_string.charAt(index));
+                        vol_ipa = vol_ipa.substring(0, i-1) + replaceChar + vol_ipa.substring(i+1,vol_ipa.length());
+                    }
+                }
+            }
+        }
+
+
+        /*
+        String[] ipa_list = ipa.split("r|m|n|l|（\\.）");
         int size = ipa_list.length;
         //check the last syllable
         String last_syl = ipa_list[size-1];
@@ -317,7 +369,7 @@ public class RuleEngine {
         //connect all the ipa into a string
         for(int i = 0; i<ipa_list.length; i++){
             vol_ipa = vol_ipa+ipa_list[i] + ".";
-        }
+        }*/
         return  vol_ipa;
     }
 
@@ -334,7 +386,7 @@ public class RuleEngine {
 
         return unvoiced_ipa;
     }
-
+    //this helper function accepets a char as string and a string[] as input, outputs the char position
     private static int checkVoicePosition(String single_ipa, String[] list){
         int pos =-1 ;
         for(int i = 0; i< list.length; i++){
@@ -348,10 +400,13 @@ public class RuleEngine {
 
     public static void main(String[] args){
         //хоронить:xʌ.rɑˈɲitʲ
-        //String word2 = "Здравствуйте, мир!";
-        String word2 = "Здравствуйте мир";
+        //String word2 = "Здравствуйте, мир!";отец бы:ɑˈtʲɛdz bɨ
+        String word2 = "обточить обход";
+
         String ipa2 = new String();
         ipa2 = Transcribe(word2);
+
+        System.out.print("True ipa is ɑ.ptɑˈtʃʲitʲ ɑ.ˈpxot");
     }
 
     //This function prints a String[]
