@@ -160,6 +160,7 @@ public class RuleEngine {
             //Need to make sure space only shows in the middle of a sentence
             if (key.equals(" ")) {
                 ipa = ipa.substring(0,ipa.length()-1) + " ";
+                word_part = word_part.substring(1, word_part.length());
             } else {
                     value = (String[]) cyrillicLib.get(key);
                     word_hash.put(key, value);
@@ -179,11 +180,7 @@ public class RuleEngine {
                         ipa = ipa + value[2] + ".";
                         word_part = word_part.substring(1, word_part.length());
                     } else {
-                        String last_char = "";
-                        if (ipa.length() - 1 >= 0) {
-                            last_char = ipa.substring(ipa.length() - 1);
-                        }
-                        if (!checkContainVowels(word_part) && last_char.equals(".")) {
+                        if (!checkContainVowels(word_part)) {
                             ipa = ipa.substring(0, ipa.length() - 1);
                             word_VCS = word_VCS.substring(0, word_VCS.length() - 1);
                         }
@@ -219,66 +216,73 @@ public class RuleEngine {
 
     //palatalization process
     private static String palatalization(String ipa){
-        String pal_ipa = new String();
-        String[] ipa_list = ipa.split("  |\\.");
-        for(int i = ipa_list.length-1; i>=0; i--){
-            String current_ipa = ipa_list[i];
-            int index =-1;
-            //checks if b is shown, and make is soft indicator
-            if (current_ipa.contains("->")){
-                int tmp_index = current_ipa.indexOf("->");
-                if (check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+        String[] word_ipa_list = ipa.split("\\s");
+        String sentence_ipa = "";
+        for(int j = 0; j < word_ipa_list.length; j++) {
+            String pal_ipa = new String();
+            String[] ipa_list = word_ipa_list[j].split("\\.");
+            for (int i = ipa_list.length - 1; i >= 0; i--) {
+                String current_ipa = ipa_list[i];
+                int index = -1;
+                //checks if b is shown, and make is soft indicator
+                if (current_ipa.contains("->")) {
+                    int tmp_index = current_ipa.indexOf("->");
+                    if (check_palatalization(current_ipa.substring(tmp_index - 1, tmp_index))) {
+                        current_ipa = current_ipa.substring(0, tmp_index) + "ʲ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                    }
+                    ipa_list[i] = current_ipa;
                 }
-                ipa_list[i] = current_ipa;
+                //checks if indicator shows up, each syllable can have only one vowel, use if else structure
+                if (current_ipa.contains("jɑ")) {
+                    int tmp_index = current_ipa.indexOf("jɑ");
+                    if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index - 1, tmp_index))) {
+                        current_ipa = current_ipa.substring(0, tmp_index) + "ʲɑ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                    }
+                    ipa_list[i] = current_ipa;
+                } else if (current_ipa.contains("jɛ")) {
+                    int tmp_index = current_ipa.indexOf("jɛ");
+                    if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index - 1, tmp_index))) {
+                        current_ipa = current_ipa.substring(0, tmp_index) + "ʲɛ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                    }
+                    ipa_list[i] = current_ipa;
+                } else if (current_ipa.contains("i")) {
+                    int tmp_index = current_ipa.indexOf("i");
+                    if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index - 1, tmp_index))) {
+                        current_ipa = current_ipa.substring(0, tmp_index) + "ʲi" + current_ipa.substring(tmp_index + 1, current_ipa.length());
+                    }
+                    ipa_list[i] = current_ipa;
+                } else if (current_ipa.contains("jo")) {
+                    int tmp_index = current_ipa.indexOf("jo");
+                    if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index - 1, tmp_index))) {
+                        current_ipa = current_ipa.substring(0, tmp_index) + "ʲo" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                    }
+                    ipa_list[i] = current_ipa;
+                } else if (current_ipa.contains("ju")) {
+                    int tmp_index = current_ipa.indexOf("ju");
+                    if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index - 1, tmp_index))) {
+                        current_ipa = current_ipa.substring(0, tmp_index) + "ʲu" + current_ipa.substring(tmp_index + 2, current_ipa.length());
+                    }
+                    ipa_list[i] = current_ipa;
+                }
+                //makes nj = specical n
+                if (ipa_list[i].contains("nʲ")) {
+                    ipa_list[i] = ipa_list[i].replaceAll("nʲ", "ɲ");
+                }
+                if (ipa_list[i].contains("tsʲ")) {
+                    ipa_list[i] = ipa_list[i].replaceAll("tsʲ", "ts");
+                }
+
             }
-            //checks if indicator shows up, each syllable can have only one vowel, use if else structure
-            if(current_ipa.contains("jɑ")){
-                int tmp_index = current_ipa.indexOf("jɑ");
-                if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲɑ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
-                }
-                ipa_list[i] = current_ipa;
-            }else if(current_ipa.contains("jɛ")){
-                int tmp_index = current_ipa.indexOf("jɛ");
-                if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲɛ" + current_ipa.substring(tmp_index + 2, current_ipa.length());
-                }
-                ipa_list[i] = current_ipa;
-            }else if(current_ipa.contains("i")){
-                int tmp_index = current_ipa.indexOf("i");
-                if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))){
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲi" + current_ipa.substring(tmp_index + 1, current_ipa.length());
-                }
-                ipa_list[i] = current_ipa;
-            }else if (current_ipa.contains("jo")){
-                int tmp_index = current_ipa.indexOf("jo");
-                if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲo" + current_ipa.substring(tmp_index + 2, current_ipa.length());
-                }
-                ipa_list[i] = current_ipa;
-            }else if (current_ipa.contains("ju")){
-                int tmp_index = current_ipa.indexOf("ju");
-                if (tmp_index != 0 && check_palatalization(current_ipa.substring(tmp_index-1,tmp_index))) {
-                    current_ipa = current_ipa.substring(0, tmp_index) + "ʲu" + current_ipa.substring(tmp_index + 2, current_ipa.length());
-                }
-                ipa_list[i] = current_ipa;
+            //make ipa_list to String
+            for (int i = 0; i < ipa_list.length; i++) {
+                pal_ipa = pal_ipa + ipa_list[i] + ".";
             }
-            //makes nj = specical n
-            if(ipa_list[i].contains("nʲ")){
-                ipa_list[i]  = ipa_list[i].replaceAll("nʲ", "ɲ");
-            }
-            if(ipa_list[i].contains("tsʲ")){
-                ipa_list[i]  = ipa_list[i].replaceAll("tsʲ", "ts");
-            }
+            pal_ipa = pal_ipa.substring(0, pal_ipa.length() - 1);
+            sentence_ipa = sentence_ipa + " " + pal_ipa;
 
         }
-        //make ipa_list to String
-        for(int i =0 ; i<ipa_list.length;i++){
-            pal_ipa = pal_ipa + ipa_list[i] + ".";
-        }
-        pal_ipa = pal_ipa.substring(0,pal_ipa.length()-1);
-        return pal_ipa;
+
+        return sentence_ipa;
     }
 
     /*this function does the conversion between voiced and unvoiced
