@@ -115,9 +115,11 @@ public class RuleEngine {
 
         //Get the sentence chars'ipa one by one and divide the syllables by "."
         sentence_ipa = Syllables_divider(sentence);
+        System.out.println("ipa after divider= " + sentence_ipa);
         sentence_ipa = palatalization(sentence_ipa);
         System.out.println("ipa after pal= " + sentence_ipa);
         sentence_ipa = changeVoiced(sentence_ipa);
+        System.out.println("ipa after voice= " + sentence_ipa);
         /*
         String[] words = sentence.split(" \\P{L}+");
         String[] ipa_list = new String[words.length];
@@ -157,13 +159,14 @@ public class RuleEngine {
         String word_VCS = new String();
         String word_part = sentence;
         String[] value = new String[word_array.length];
-
+        int deleted  = -1;
         for (int i = 0; i < word_array.length; i++) {
             String key = word_array[i];
             String vcs = new String();
             //Need to make sure space only shows in the middle of a sentence
             if (key.equals(" ")) {
-                ipa = ipa.substring(0,ipa.length()-1) + " ";
+                deleted  = -1;
+                ipa = ipa + " ";
                 word_part = word_part.substring(1, word_part.length());
             } else {
                     value = (String[]) cyrillicLib.get(key);
@@ -184,9 +187,20 @@ public class RuleEngine {
                         ipa = ipa + value[2] + ".";
                         word_part = word_part.substring(1, word_part.length());
                     } else {
-                        if (!checkContainVowels(word_part)) {
-                            ipa = ipa.substring(0, ipa.length() - 1);
-                            word_VCS = word_VCS.substring(0, word_VCS.length() - 1);
+                        String firstword = "";
+                        if(word_part.contains(" ")){
+                            firstword = word_part.substring(0, word_part.indexOf(" "));
+                            if (!checkContainVowels(firstword) && deleted == -1) {
+                                ipa = ipa.substring(0, ipa.length() - 1);
+                                word_VCS = word_VCS.substring(0, word_VCS.length() - 1);
+                                deleted = 1;
+                            }
+                        }else {
+                            if (!checkContainVowels(word_part) && deleted == -1) {
+                                ipa = ipa.substring(0, ipa.length() - 1);
+                                word_VCS = word_VCS.substring(0, word_VCS.length() - 1);
+                                deleted = 1;
+                            }
                         }
                         word_VCS = word_VCS + value[0];
                         ipa = ipa + value[2];
@@ -324,7 +338,7 @@ public class RuleEngine {
                     if(voiced_string.contains(single_ipa)){
                         int index = voiced_string.indexOf(single_ipa);
                         String replaceChar = String.valueOf(unvoiced_string.charAt(index));
-                        vol_ipa = vol_ipa.substring(0, i-1) + replaceChar;
+                        vol_ipa = vol_ipa.substring(0, i) + replaceChar;
                     }
                     flag = 2;
                 }
@@ -351,25 +365,6 @@ public class RuleEngine {
                 }
             }
         }
-
-
-        /*
-        String[] ipa_list = ipa.split("r|m|n|l|（\\.）");
-        int size = ipa_list.length;
-        //check the last syllable
-        String last_syl = ipa_list[size-1];
-        String last_char = last_syl.substring(last_syl.length()-1,last_syl.length());
-        int pos = checkVoicePosition(last_char,voiced);
-        if(pos!=-1){
-            last_syl = last_syl.substring(0,last_syl.length()-1);
-            last_syl = changeVoicedHelper(last_syl) + unvoiced[pos];
-            ipa_list[size-1] = last_syl;
-        }
-
-        //connect all the ipa into a string
-        for(int i = 0; i<ipa_list.length; i++){
-            vol_ipa = vol_ipa+ipa_list[i] + ".";
-        }*/
         return  vol_ipa;
     }
 
@@ -401,7 +396,7 @@ public class RuleEngine {
     public static void main(String[] args){
         //хоронить:xʌ.rɑˈɲitʲ
         //String word2 = "Здравствуйте, мир!";отец бы:ɑˈtʲɛdz bɨ
-        String word2 = "обточить обход";
+        String word2 ="обточить обход";
 
         String ipa2 = new String();
         ipa2 = Transcribe(word2);
