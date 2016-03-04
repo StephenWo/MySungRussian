@@ -343,7 +343,8 @@ public class RuleEngine {
                     flag = 2;
                 }
             }else{
-                if(flag == 0){
+                if(single_ipa.equals(".")){}
+                else if(flag == 0){
                     if(voiced_string.contains(single_ipa)){flag =1;}
                     else if (unvoiced_string.contains(single_ipa)){flag =2;}
                 }else if(flag == 1 ){
@@ -352,7 +353,7 @@ public class RuleEngine {
                     }else if(unvoiced_string.contains(single_ipa)){
                         int index = unvoiced_string.indexOf(single_ipa);
                         String replaceChar = String.valueOf(voiced_string.charAt(index));
-                        vol_ipa = vol_ipa.substring(0, i-1) + replaceChar + vol_ipa.substring(i+1,vol_ipa.length());
+                        vol_ipa = vol_ipa.substring(0, i) + replaceChar + vol_ipa.substring(i+1,vol_ipa.length());
                     }
                 }else if(flag == 2){
                     if(sonorant_string.contains(single_ipa) || vowel_string.contains(single_ipa)){
@@ -360,7 +361,7 @@ public class RuleEngine {
                     }else if(voiced_string.contains(single_ipa)){
                         int index = voiced_string.indexOf(single_ipa);
                         String replaceChar = String.valueOf(unvoiced_string.charAt(index));
-                        vol_ipa = vol_ipa.substring(0, i-1) + replaceChar + vol_ipa.substring(i+1,vol_ipa.length());
+                        vol_ipa = vol_ipa.substring(0, i) + replaceChar + vol_ipa.substring(i+1,vol_ipa.length());
                     }
                 }
             }
