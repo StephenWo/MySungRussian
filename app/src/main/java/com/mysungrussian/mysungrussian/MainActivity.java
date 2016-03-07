@@ -8,7 +8,9 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -23,6 +25,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         transFrag = new TranscribeFragment();
         savedFrag = new SavedFragment();
 
@@ -31,6 +34,46 @@ public class MainActivity extends AppCompatActivity
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.add(R.id.fragment_container, transFrag).commit();
 
+
+        // For hiding keyboard when outside text box is clicked
+        setupUI( findViewById(R.id.fragment_container) );
+    }
+
+    // Method to hide keyboard
+    public static void hideSoftKeyboard(Activity activity) {
+        InputMethodManager inputMethodManager = (InputMethodManager)  activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+    }
+
+    // Method
+    public void setupUI(View view) {
+
+        //Set up touch listener for non-text box views to hide keyboard.
+        if(!(view instanceof EditText)) {
+
+            view.setOnTouchListener(new View.OnTouchListener() {
+
+                public boolean onTouch(View v, MotionEvent event) {
+                    if(getCurrentFocus() != null) {
+                        hideSoftKeyboard(MainActivity.this);
+                        getCurrentFocus().clearFocus();
+                    }
+                    return false;
+                }
+
+            });
+        }
+
+        //If a layout container, iterate over children and seed recursion.
+        if (view instanceof ViewGroup) {
+
+            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+
+                View innerView = ((ViewGroup) view).getChildAt(i);
+
+                setupUI(innerView);
+            }
+        }
     }
 
 
@@ -64,19 +107,30 @@ public class MainActivity extends AppCompatActivity
         }
 
         EditText input_field = (EditText) findViewById(R.id.input_field);
+        input_field.setText("Здравствуйте тотчас же время работы по созданию интеллектуальных систем видеонаблюдения на избирательных линий розлива растительного происхождения товаров для личного использования");
         String input_words = input_field.getText().toString();
         input_field.clearFocus();
 
         Log.d("Che", "transcribing, the input is: " +input_words);
 
         if (!input_words.isEmpty()) {
+            // Feed into RuleEngine, the result is a string of IPA
             String output_ipas = RuleEngine.Transcribe(input_words);
             Log.d("Che", "transcribing, the output is: " + output_ipas);
 
-            EditText output_field = (EditText) findViewById(R.id.output_field);
+            // Tokenize the input and output string, pad spaces to make them equal length
+
+            // Put output
+            EditText output_field = (EditText) findViewById(R.id.output_field2);
+            output_field.setVisibility(View.VISIBLE);
             output_field.clearFocus();
             output_field.setText(output_ipas);
+
+            // Bring the input_field to front (for now, only allow editting of this)
+            input_field.bringToFront();
+            input_field.clearFocus();
         }
+
 
     }
     /*public void onClickInputField (View v) {

@@ -2,14 +2,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.mysungrussian.mysungrussian.SavedFragment">
+    tools:context="com.mysungrussian.mysungrussian.SavedFragment"
+    >
 
     <!-- TODO: Update blank fragment layout -->
 
     <RelativeLayout
+        android:id="@+id/transcribe_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center">
+        android:layout_gravity="center"
+        >
 
         <Button
             android:layout_width="wrap_content"
@@ -18,10 +21,11 @@
             android:id="@+id/btn"
             android:layout_gravity="right|center_vertical"
             android:onClick="onClickTranscribe"
-            android:layout_centerVertical="true"
-            android:layout_alignParentEnd="true"
             android:background="#CC3333"
-            android:textColor="#FFFFFF" />
+            android:textColor="#FFFFFF"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="10dp"/>
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -30,60 +34,60 @@
             android:layout_above="@id/btn"
             android:layout_gravity="center_horizontal|top"
             android:layout_margin="10dp"
-            android:background="#c8c8c8"
-            android:id="@+id/frameLayout">
+            android:background="#ffffff"
+            android:id="@+id/frameLayout"
+            android:focusableInTouchMode="true">
 
-            <FrameLayout
+            <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:background="#ffffff"
-                android:layout_margin="1dp">
+                android:id="@+id/scrollView"
+                android:layout_gravity="top" >
 
-                <EditText
-                    android:inputType="textMultiLine|textNoSuggestions"
-                    android:layout_margin="10dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/input_field"
-                    android:layout_gravity="left|top"
-                    android:gravity="top|left"
-                    android:text="Здравствуйте, мир!"
-                    android:background="@android:color/transparent"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    />
-            </FrameLayout>
-
-        </FrameLayout>
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_below="@id/btn"
-            android:layout_gravity="left|top"
-            android:layout_margin="10dp"
-            android:background="#c8c8c8">
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:background="#ffffff"
-                android:layout_margin="1dp">
-
-                <EditText
-                    android:layout_margin="10dp"
+                <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/output_field"
-                    android:layout_gravity="left|top"
-                    android:background="#ffffff"
-                    android:inputType="textNoSuggestions"
-                    />
-            </FrameLayout>
+                    android:padding="5dp"
+                    android:layout_margin="1dp">
+
+                    <EditText
+                        android:id="@+id/input_field"
+                        android:layout_marginTop="21dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="left|top"
+                        android:gravity="top|left"
+                        android:text="Здравствуйте"
+                        android:background="@android:color/transparent"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:inputType="textMultiLine|textNoSuggestions"
+                        android:lineSpacingExtra="30dp"
+                        android:textCursorDrawable="@drawable/cursor"
+                        />
+
+                    <EditText
+                        android:id="@+id/output_field2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="left|top"
+                        android:gravity="top|left"
+                        android:text="zdrɑ.vzdvuj.tʲɛ"
+                        android:background="@android:color/transparent"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:inputType="textMultiLine|textNoSuggestions"
+                        android:lineSpacingExtra="30dp"
+                        android:textColor="#CC3333"
+                        android:textCursorDrawable="@drawable/cursor"
+                        android:visibility="gone"
+                        />
+
+                </FrameLayout>
+            </ScrollView>
+
         </FrameLayout>
+
     </RelativeLayout>
 
 </FrameLayout>

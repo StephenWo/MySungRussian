@@ -40,7 +40,7 @@ public class StressHelper {
             }
 
         } catch (IOException e) {
-            System.out.println("!!!!This word is not found on wikitionary: "+word);
+            System.out.println("!!!!Lookup on Wikitionary failed, word is: "+word);
             //e.printStackTrace();
         }
         return ipa_strings;
@@ -91,7 +91,7 @@ public class StressHelper {
             String word = st2.nextToken();
             String true_ipa = st2.nextToken();
             String ipa = "(n/a)";
-            System.out.println("\n+++++++++++++"+word+"+++++++++++++");
+            System.out.println("\n+++++++++++++ "+word+" +++++++++++++");
 
             try {
                 ipas = getIPAFromWikitionary(word);
