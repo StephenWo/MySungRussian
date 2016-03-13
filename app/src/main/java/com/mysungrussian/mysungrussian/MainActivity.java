@@ -19,9 +19,11 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 public class MainActivity extends AppCompatActivity
-        implements TranscribeFragment.OnFragmentInteractionListener, SavedFragment.OnFragmentInteractionListener {
+        implements TranscribeFragment.OnFragmentInteractionListener,
+        SavedFragment.OnFragmentInteractionListener, LearnFragment.OnFragmentInteractionListener {
     TranscribeFragment transFrag;
     SavedFragment savedFrag;
+    LearnFragment learnFrag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +33,7 @@ public class MainActivity extends AppCompatActivity
 
         transFrag = new TranscribeFragment();
         savedFrag = new SavedFragment();
-
+        learnFrag = new LearnFragment();
 
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -48,7 +50,7 @@ public class MainActivity extends AppCompatActivity
         inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
     }
 
-    // Method
+    // Method for hiding soft keyboard
     public void setupUI(View view) {
 
         //Set up touch listener for non-text box views to hide keyboard.
@@ -94,7 +96,7 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.btn_learn:
                 //Just put the same empty fragment here
-                fragmentTransaction.replace(R.id.fragment_container, savedFrag);
+                fragmentTransaction.replace(R.id.fragment_container, learnFrag);
                 fragmentTransaction.commit();
                 break;
         }
@@ -217,6 +219,14 @@ public class MainActivity extends AppCompatActivity
         }
 
 
+    }
+
+    public void onClickRecord(View v) {
+        learnFrag.onClickRecord(v);
+    }
+
+    public void onClickPlay(View v) {
+        learnFrag.onClickPlay(v);
     }
 
 
