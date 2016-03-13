@@ -1,0 +1,34 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.mysungrussian.mysungrussian.LearnFragment"
+    android:padding="20dp">
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center">
+
+        <Button
+            android:id="@+id/btn_record"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="Record"
+            android:layout_marginTop="92dp"
+            android:onClick="onClickRecord"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true" />
+
+        <Button
+            android:id="@+id/btn_play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Play"
+            android:onClick="onClickPlay"
+            android:layout_below="@+id/btn_record"
+            android:layout_alignParentStart="true"
+            android:layout_alignEnd="@+id/btn_record" />
+    </RelativeLayout>
+</FrameLayout>
