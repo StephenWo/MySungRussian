@@ -382,17 +382,13 @@ public class RuleEngine {
     * */
     public static String addStress(String syllable_sentence, String ipa){
         String stress_ipa = "";
-        int pos = 0;
-
-
-
-
         String [] word_list = syllable_sentence.split(" ");
         String [] ipa_list = ipa.split(" ");
         for (int i=0; i < word_list.length; i++){
             //get the ipa from wiki
-            List<String> wiki_ipa = getIPAFromWikitionary(word_list[i].replace(".",""));
-            stress_ipa = stress_ipa + stress_helper(pos, word_list[i],ipa_list[i]) + " ";
+            //List<String> wiki_ipa = getIPAFromWikitionary(word_list[i].replace(".",""));
+            int wiki_position = getStressPositionFromWikitionary(word_list[i].replace(".",""));
+            stress_ipa = stress_ipa + stress_helper(wiki_position, word_list[i],ipa_list[i]) + " ";
         }
         return stress_ipa;
     }
@@ -401,6 +397,10 @@ public class RuleEngine {
     * This helper function accepts stress position and single word ipa
     * returns single word stressed ipa
     * This can be called when user wants to change single word stress
+    *
+    * dis the int range from -100~0~100
+    * 0 is stressed, -100  is initial letter
+    * if stress is at 0 position, dis = -100
     * */
     public static String stress_helper(int stress_position, String word, String ipa){
         word = word.toLowerCase();
@@ -414,8 +414,8 @@ public class RuleEngine {
             for(int i = 0; i<ipa_syllables.length; i++){
                 int dis = (i == 0 ) ? -100 : i-stress_position;
                 String cur_vowel = Utils.pickSameChar(word_syllables[i], vowel_letter_string);
-                String replace = Utils.stress(dis, cur_vowel, word_syllables[i], ipa_syllables[i]);
-                if(dis == 0){
+                String replace = Utils.stress(stress_position, dis, cur_vowel, word_syllables[i], ipa_syllables[i]);
+                if(dis == 0 || (dis == -100 && stress_position == 0)){
                     stress_ipa = stress_ipa.replace("." + ipa_syllables[i], "'" + replace);
                 }
                 else{
@@ -423,6 +423,7 @@ public class RuleEngine {
                 }
             }
         }
+        System.out.println("the stress position is " + stress_position);
         return stress_ipa;
     }
 
@@ -434,7 +435,6 @@ public class RuleEngine {
         List<String> ipa_strings = new ArrayList<String>();
 
         try {
-
             // need http protocol
             String url = "https://en.wiktionary.org/wiki/" + word;
             doc = Jsoup.connect(url).get();
@@ -453,15 +453,46 @@ public class RuleEngine {
 
     }
 
+    public static int getStressPositionFromWikitionary(String word){
+        Locale.setDefault(new Locale("ru"));
+        word = word.toLowerCase();
+        int pos = 0;
+        Document doc;
+        String ipa_strings = new String();
 
+        try {
+            // need http protocol
+            String url = "https://en.wiktionary.org/wiki/" + word;
+            doc = Jsoup.connect(url).get();
 
+            Elements E = doc.select("span.IPA");    //span with class=IPA
+            for (Element e : E) {
+                System.out.println("Found an IPA : " + e.text());
+                ipa_strings = e.text();
+            }
 
+        } catch (IOException e) {
+            System.out.println("!!!!This word is not found on wikitionary: "+word);
+            pos = 0;
+            //e.printStackTrace();
+        }
+
+        String[] syllables = ipa_strings.split("ɑ|a|ʌ|ɛ|i|ɪ|ɨ|o|u|ɔ|ɐ|ə");
+        for(int i = 0 ; i<syllables.length; i ++){
+            System.out.println("current syallable is " + syllables[i]);
+            if(syllables[i].contains("ˈ")){
+                return i;
+            }
+        }
+        return pos;
+
+    }
 
     public static void main(String[] args){
         //хоронить:xʌ.rɑˈɲitʲ
         //String word2 = "Здравствуйте, мир!";отец бы:ɑˈtʲɛdz bɨ
         //начать nɑ 'tʃʲatʲ
-        String word2 ="музыка";
+        String word2 = "Заказ";
 
         String ipa2 = new String();
         ipa2 = Transcribe(word2);
