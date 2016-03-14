@@ -404,7 +404,7 @@ public class RuleEngine {
     * */
     public static String stress_helper(int stress_position, String word, String ipa){
         word = word.toLowerCase();
-        String stress_ipa = ipa;
+        String stress_ipa = "";
         String[] ipa_syllables = ipa.split("\\.");
         String[] word_syllables = word.split("\\.");
 
@@ -416,13 +416,14 @@ public class RuleEngine {
                 String cur_vowel = Utils.pickSameChar(word_syllables[i], vowel_letter_string);
                 String replace = Utils.stress(stress_position, dis, cur_vowel, word_syllables[i], ipa_syllables[i]);
                 if(dis == 0 || (dis == -100 && stress_position == 0)){
-                    stress_ipa = stress_ipa.replace("." + ipa_syllables[i], "'" + replace);
+                    stress_ipa = stress_ipa + "'" + replace + ".";
                 }
                 else{
-                    stress_ipa = stress_ipa.replace(ipa_syllables[i], replace);
+                    stress_ipa = stress_ipa + replace + ".";
                 }
             }
         }
+        stress_ipa = stress_ipa.substring(0,stress_ipa.length()-1);
         System.out.println("the stress position is " + stress_position);
         return stress_ipa;
     }
@@ -492,7 +493,7 @@ public class RuleEngine {
         //хоронить:xʌ.rɑˈɲitʲ
         //String word2 = "Здравствуйте, мир!";отец бы:ɑˈtʲɛdz bɨ
         //начать nɑ 'tʃʲatʲ
-        String word2 = "Заказ";
+        String word2 = "окна";
 
         String ipa2 = new String();
         ipa2 = Transcribe(word2);
