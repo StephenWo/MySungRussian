@@ -1,6 +1,13 @@
 package com.mysungrussian.mysungrussian;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioRecord;
+import android.media.AudioTrack;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -12,10 +19,22 @@ import android.view.ViewGroup;
 import android.media.MediaRecorder;
 import android.media.MediaPlayer;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-import android.os.CountDownTimer;
+
+import com.musicg.wave.Wave;
+import com.musicg.wave.WaveHeader;
+import com.musicg.wave.extension.Spectrogram;
 
 
 /**
@@ -27,108 +46,151 @@ import android.os.CountDownTimer;
  * create an instance of this fragment.
  */
 public class LearnFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
     private OnFragmentInteractionListener mListener;
 
 
-    private static final String LOG_TAG = "AudioRecordTest";
+    private static final String LOG_TAG = "LearnFragment";
+
     private static String mFileName = null;
+    private static String mWavFileName = null;
 
     private MediaRecorder mRecorder = null;
-
     private MediaPlayer   mPlayer = null;
 
-    private void onRecord(boolean start) {
-        if (start) {
-            startRecording();
-        } else {
-            stopRecording();
-        }
-    }
+    private static final int RECORDER_SAMPLERATE = 44100;
 
-    private void onPlay(boolean start) {
-        if (start) {
-            startPlaying();
-        } else {
-            stopPlaying();
-        }
-    }
+    private static final int RECORDER_CHANNELS = AudioFormat.CHANNEL_IN_MONO;
 
-    private void startPlaying() {
-        mPlayer = new MediaPlayer();
+    private static final int RECORDER_AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
+
+    private AudioRecord recorder = null;
+    private Thread recordingThread = null;
+    private boolean isRecording = false;
+
+    int BufferElements2Rec = 1024; // want to play 2048 (2K) since 2 bytes we use only 1024
+    int BytesPerElement = 2; // 2 bytes in 16bit format
+
+
+    private void playRecording() {
+
+        String fileName = mFileName;
+        File file = new File(fileName);
+
+        byte[] audioData = null;
+
         try {
-            mPlayer.setDataSource(mFileName);
-            mPlayer.prepare();
-            mPlayer.start();
-        } catch (IOException e) {
-            Log.e(LOG_TAG, "prepare() failed");
-        }
-    }
+            InputStream inputStream = new FileInputStream(fileName);
 
-    private void stopPlaying() {
-        mPlayer.release();
-        mPlayer = null;
+            int minBufferSize = AudioTrack.getMinBufferSize(44100,AudioFormat.CHANNEL_OUT_MONO,AudioFormat.ENCODING_PCM_16BIT);
+            audioData = new byte[minBufferSize];
+
+            AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,44100,AudioFormat.CHANNEL_OUT_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT,minBufferSize,AudioTrack.MODE_STREAM);
+            audioTrack.play();
+            int i=0;
+
+            while((i = inputStream.read(audioData)) != -1) {
+                audioTrack.write(audioData,0,i);
+            }
+
+        } catch(FileNotFoundException fe) {
+            Log.e(LOG_TAG,"File not found");
+        } catch(IOException io) {
+            Log.e(LOG_TAG,"IO Exception");
+        }
     }
 
     private void startRecording() {
-        mRecorder = new MediaRecorder();
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mRecorder.setOutputFile(mFileName);
-        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
+        BufferElements2Rec = AudioRecord.getMinBufferSize(RECORDER_SAMPLERATE,RECORDER_CHANNELS,RECORDER_AUDIO_ENCODING);
+        recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
+                RECORDER_SAMPLERATE, RECORDER_CHANNELS,
+                RECORDER_AUDIO_ENCODING, BufferElements2Rec * BytesPerElement);
+
+        recorder.startRecording();
+        isRecording = true;
+        recordingThread = new Thread(new Runnable() {
+            public void run() {
+                writeAudioDataToFile();
+            }
+        }, "AudioRecorder Thread");
+        recordingThread.start();
+    }
+
+    //convert short to byte
+    private byte[] short2byte(short[] sData) {
+        int shortArrsize = sData.length;
+        byte[] bytes = new byte[shortArrsize * 2];
+        for (int i = 0; i < shortArrsize; i++) {
+            bytes[i * 2] = (byte) (sData[i] & 0x00FF);
+            bytes[(i * 2) + 1] = (byte) (sData[i] >> 8);
+            sData[i] = 0;
+        }
+        return bytes;
+
+    }
+
+    private void writeAudioDataToFile() {
+        // Write the output audio in byte
+
+        //String filePath = "/sdcard/voice8K16bitmono.pcm";
+        String filePath = mFileName;
+        Log.d("Che", "filePath is "+filePath);
+
+        short sData[] = new short[BufferElements2Rec];
+
+        FileOutputStream os = null;
         try {
-            mRecorder.prepare();
-        } catch (IOException e) {
-            Log.e(LOG_TAG, "prepare() failed");
+            os = new FileOutputStream(filePath);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
 
-        mRecorder.start();
+        while (isRecording) {
+            // gets the voice output from microphone to byte format
+
+            recorder.read(sData, 0, BufferElements2Rec);
+            System.out.println("Short wirting to file" + sData.toString());
+            try {
+                // // writes the data to file from buffer
+                // // stores the voice buffer
+                byte bData[] = short2byte(sData);
+                os.write(bData, 0, BufferElements2Rec * BytesPerElement);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void stopRecording() {
-        mRecorder.stop();
-        mRecorder.release();
-        mRecorder = null;
+        // stops the recording activity
+        if (null != recorder) {
+            isRecording = false;
+            recorder.stop();
+            recorder.release();
+            recorder = null;
+            recordingThread = null;
+            Log.d("Che","stopRecording");
+        }
     }
 
-    public void onClickRecord (View v){
-        final Button btn_record = (Button) getActivity().findViewById(R.id.btn_record);
-        btn_record.setClickable(false);
-        btn_record.setAlpha(.5f);
 
-        //Start recording
-        onRecord(true);
-
-        //wait 2 second and stop
-        btn_record.postDelayed(new Runnable() {
-
-            @Override
-            public void run() {
-                btn_record.setClickable(true);
-                btn_record.setAlpha(1.0f);
-
-                onRecord(false);
-            }
-        }, 2000);
-
-    }
-
+    // onClick for the play button
+    // Play the 2sec .wav file recorded before...........
     public void onClickPlay (View v){
         final Button btn_play = (Button)getActivity().findViewById(R.id.btn_play);
         btn_play.setClickable(false);
         btn_play.setAlpha(.5f);
 
         //Start playing
-        onPlay(true);
+        //onPlay(true);
+        playRecording();
 
         //wait 2 second and stop
         btn_play.postDelayed(new Runnable() {
@@ -137,29 +199,137 @@ public class LearnFragment extends Fragment {
             public void run() {
                 btn_play.setClickable(true);
                 btn_play.setAlpha(1.0f);
-                onPlay(false);
+                //onPlay(false);
             }
         }, 2000);
+
+        //mySpectrogram(v);
+    }
+
+    // onClick for the Record button
+    // Starts recording and stop after 2 sec, save to .wav file to be processed by musicg
+    public void onClickRecord (View v){
+        final Button btn_record = (Button) getActivity().findViewById(R.id.btn_record);
+        btn_record.setClickable(false);
+        btn_record.setAlpha(.5f);
+
+        //Start recording
+        startRecording();
+        //wait 2 second and stop
+        btn_record.postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                btn_record.setClickable(true);
+                btn_record.setAlpha(1.0f);
+
+                stopRecording();
+            }
+        }, 2000);
+
+        // Audio processing?
+
+        /*waveHeader = new WaveHeader();
+        waveHeader.setChannels(1);
+        waveHeader.setBitsPerSample(16);
+        waveHeader.setSampleRate(audioRecord.getSampleRate());
+
+        Wave wave = new Wave(waveHeader, buffer);*/
+        //wave.getSpectrogram();
+    }
+
+    /*public byte[] getFrameBytes(){
+        audioRecord.read(buffer, 0, frameByteSize);
+
+        // analyze sound
+        int totalAbsValue = 0;
+        short sample = 0;
+        float averageAbsValue = 0.0f;
+
+        for (int i = 0; i < frameByteSize; i += 2) {
+            sample = (short)((buffer[i]) | buffer[i + 1] << 8);
+            totalAbsValue += Math.abs(sample);
+        }
+        averageAbsValue = totalAbsValue / frameByteSize / 2;
+
+        //System.out.println(averageAbsValue);
+
+        // no input
+        if (averageAbsValue < 30){
+            return null;
+        }
+
+        return buffer;
+    }*/
+
+    // Audio processing with musicg
+    private void mySpectrogram (View v){
+
+
+        // Get the wave from the audio file...
+        Wave wave = new Wave(mFileName);
+        byte[] b = wave.getBytes();
+        Log.d("Che", mFileName);
+        Log.d("Che", "the data length is "+b.length);
+
+        // Get spectrogram
+        Spectrogram spectrogram = wave.getSpectrogram();
+
+        double [][] data = spectrogram.getNormalizedSpectrogramData();
+
+        // Render the spectrogram
+        SpectrogramView mView = new SpectrogramView(getActivity(), data);
+        LinearLayout mLayout = (LinearLayout) getActivity().findViewById(R.id.linearLayout);
+        mLayout.addView(mView);
+    }
+
+    private static class SpectrogramView extends View {
+        private Paint paint = new Paint();
+        private Bitmap bmp;
+
+        public SpectrogramView(Context context, double [][] data) {
+            super(context);
+
+            if (data != null) {
+                paint.setStrokeWidth(1);
+                int width = data.length;
+                int height = data[0].length;
+
+                int[] arrayCol = new int[width*height];
+                int counter = 0;
+                for(int i = 0; i < height; i++) {
+                    for(int j = 0; j < width; j++) {
+                        int value;
+                        int color;
+                        value = 255 - (int)(data[j][i] * 255);
+                        color = (value<<16|value<<8|value|255<<24);
+                        arrayCol[counter] = color;
+                        counter ++;
+                    }
+                }
+                bmp = Bitmap.createBitmap(arrayCol, width, height, Bitmap.Config.ARGB_8888);
+
+            } else {
+                System.err.println("Data Corrupt");
+            }
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            canvas.drawBitmap(bmp, 0, 100, paint);
+        }
     }
 
     public LearnFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment LearnFragment.
-     */
+
     // TODO: Rename and change types and number of parameters
     public static LearnFragment newInstance(String param1, String param2) {
         LearnFragment fragment = new LearnFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
     }
@@ -167,12 +337,15 @@ public class LearnFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
         mFileName = Environment.getExternalStorageDirectory().getAbsolutePath();
-        mFileName += "/audiorecordtest.wav";
+        mFileName += "/audiorecordtest.raw";
+
+        /*int recBufSize = AudioRecord.getMinBufferSize(sampleRate, channelConfiguration, audioEncoding); // need to be larger than size of a frame
+        Log.d("Che", "recBufSize is "+recBufSize);
+        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfiguration, audioEncoding, recBufSize);
+        buffer = new byte[frameByteSize];*/
+
+
     }
 
     @Override
