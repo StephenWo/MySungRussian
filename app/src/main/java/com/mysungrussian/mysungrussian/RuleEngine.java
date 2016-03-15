@@ -1,8 +1,17 @@
 package com.mysungrussian.mysungrussian;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by hedai on 2016-02-24.
@@ -19,10 +28,12 @@ public class RuleEngine {
     private static HashSet<String> pal_consant_set = new HashSet<String>(Arrays.asList("p","b","t","d","k","ɡ","f","s","ʃ","x","v","z","r","m","n","l"));
     private static HashSet<String> voiced_set = new HashSet<String>(Arrays.asList("v","ɡ","b","z","ʒ","d","ɣ"));
     private static HashSet<String> unvoiced_set = new HashSet<String>(Arrays.asList("f","k","p","s","ʃ","t","x"));
-    private static String voiced_string = "vɡbzʒdɣ";
-    private static String unvoiced_string = "fkpsʃtx";
-    private static String sonorant_string = "rmnl";
+    public static String voiced_string = "vɡbzʒdɣ";
+    public static String unvoiced_string = "fkpsʃtx";
+    public static String sonorant_string = "rmnl";
     private static String vowel_string ="ɑaʌɛiɪɨou";
+    private static String vowel_letter_string = "аэыуояеёюи";
+    public static String consonants_letters = "бвгджзйклмнпрстфхцчшщ";
     //public static HashMap<Integer, String[]> tmp_syllables = new HashMap<Integer, String[]>();
 
     static {
@@ -111,54 +122,32 @@ public class RuleEngine {
     * as input and gets the ipa String[] list as output
     * */
     public static String Transcribe(String sentence) {
-        String sentence_ipa = new String();
 
-        //Get the sentence chars'ipa one by one and divide the syllables by "."
-        sentence_ipa = Syllables_divider(sentence);
+        //Get the sentence and chars'ipa, both divide the syllables by "."
+        String [] sentence_and_ipa = Syllables_divider(sentence);
+        String syllable_sentence = sentence_and_ipa[0];
+        String sentence_ipa = sentence_and_ipa[1];
         System.out.println("ipa after divider= " + sentence_ipa);
         sentence_ipa = palatalization(sentence_ipa);
         System.out.println("ipa after pal= " + sentence_ipa);
         sentence_ipa = changeVoiced(sentence_ipa);
         System.out.println("ipa after voice= " + sentence_ipa);
-        /*
-        String[] words = sentence.split(" \\P{L}+");
-        String[] ipa_list = new String[words.length];
-
-        HashMap<Integer, String[]> tmp_syllables = new HashMap<Integer, String[]>();
-
-        for(int i = 0; i< words.length;i++) {
-            String tmp_ipa = Syllables_divider(words[i]);
-            tmp_syllables.put(i, new String[]{words[i],tmp_ipa});
-        }
-
-        for (int i = 0; i<tmp_syllables.size();i++){
-            String tmp_ipa =palatalization(tmp_syllables.get(i)[1]);
-            //tmp_ipa = changeVoiced(tmp_ipa);
-            tmp_syllables.put(i, new String[]{words[i],tmp_ipa});
-        }
-
-        for (int i = 0; i<tmp_syllables.size();i++){
-            String tmp_ipa="";
-            tmp_ipa = tmp_ipa + tmp_syllables.get(i)[1];
-            tmp_ipa = "/" + tmp_ipa.substring(0,tmp_ipa.length()-1) + "/ ";
-            ipa = ipa + tmp_ipa;
-        }
-        */
-
-        System.out.println("sentence = " + sentence);
-        System.out.println("ipa = " + sentence_ipa);
+        sentence_ipa = addStress(syllable_sentence,sentence_ipa.trim());
+        System.out.println("ipa after stress= " + sentence_ipa);
 
         return sentence_ipa;
     }
 
     //This function transcribe single word to ipa
-    private static String Syllables_divider(String sentence) {
+    private static String[] Syllables_divider(String sentence) {
+        String[] sentence_and_ipa = new String[2];
         String ipa = new String();
         String[] word_array = sentence.split("(?!^)");
         HashMap<String, String[]> word_hash = new HashMap<String, String[]>();
         String word_VCS = new String();
         String word_part = sentence;
         String[] value = new String[word_array.length];
+        String word_by_syllable = new String();
         int deleted  = -1;
         for (int i = 0; i < word_array.length; i++) {
             String key = word_array[i];
@@ -167,6 +156,7 @@ public class RuleEngine {
             if (key.equals(" ")) {
                 deleted  = -1;
                 ipa = ipa + " ";
+                word_by_syllable = word_by_syllable + " ";
                 word_part = word_part.substring(1, word_part.length());
             } else {
                     value = (String[]) cyrillicLib.get(key);
@@ -179,12 +169,15 @@ public class RuleEngine {
                             word_VCS = word_VCS + value[0] + ".";
                             word_VCS = word_VCS.substring(0, word_VCS.length() - 1);
                             ipa = ipa.substring(0, ipa.length() - 1);
+                            word_by_syllable = word_by_syllable.substring(0,word_by_syllable.length()-1);
                             ipa = ipa + value[2] + ".";
+                            word_by_syllable = word_by_syllable + key + ".";
                             word_part = word_part.substring(1, word_part.length());
                         }
                     } else if (vcs.equals("V") || vcs.equals("VI")) {
                         word_VCS = word_VCS + value[0] + ".";
                         ipa = ipa + value[2] + ".";
+                        word_by_syllable = word_by_syllable + key + ".";
                         word_part = word_part.substring(1, word_part.length());
                     } else {
                         String firstword = "";
@@ -192,23 +185,28 @@ public class RuleEngine {
                             firstword = word_part.substring(0, word_part.indexOf(" "));
                             if (!checkContainVowels(firstword) && deleted == -1) {
                                 ipa = ipa.substring(0, ipa.length() - 1);
+                                word_by_syllable = word_by_syllable.substring(0,word_by_syllable.length()-1);
                                 word_VCS = word_VCS.substring(0, word_VCS.length() - 1);
                                 deleted = 1;
                             }
                         }else {
                             if (!checkContainVowels(word_part) && deleted == -1) {
                                 ipa = ipa.substring(0, ipa.length() - 1);
+                                word_by_syllable = word_by_syllable.substring(0,word_by_syllable.length()-1);
                                 word_VCS = word_VCS.substring(0, word_VCS.length() - 1);
                                 deleted = 1;
                             }
                         }
                         word_VCS = word_VCS + value[0];
                         ipa = ipa + value[2];
+                        word_by_syllable = word_by_syllable + key;
                         word_part = word_part.substring(1, word_part.length());
                 }
             }
         }
-        return ipa;
+        sentence_and_ipa[1] = ipa;
+        sentence_and_ipa[0] = word_by_syllable;
+        return sentence_and_ipa;
     }
 
     private static boolean checkContainVowels(String words){
@@ -303,20 +301,6 @@ public class RuleEngine {
         return sentence_ipa;
     }
 
-    /*this function does the conversion between voiced and unvoiced
-    *the last voiced char should be changed to unvoiced
-    * any unvocied with voicied should be changed
-    * case when two words affect each other has not been considered
-    * */
-    private static boolean checkContains(String words, HashSet<String> set){
-        //HashSet<String> set = set;
-        for (String word : set) {
-            if (words.contains(word)) {
-                return true;
-            }
-        }
-        return false;
-    }
     /*
     * Process the ipa voice/unvoice
     * The last char, if vowel/sonorant, ignore, set flag = 0
@@ -369,19 +353,6 @@ public class RuleEngine {
         return  vol_ipa;
     }
 
-    private static String changeVoicedHelper(String unvoiced_ipa){
-        if(checkContains(unvoiced_ipa,voiced_set))
-            for(int i = 0; i< unvoiced_ipa.length(); i++){
-                String single_char = unvoiced_ipa.substring(i, i+1);
-                int pos = checkVoicePosition(single_char,unvoiced);
-                if(pos != -1){
-                    String tmp_ipa = voiced[pos];
-                    unvoiced_ipa=unvoiced_ipa.substring(0, i) + tmp_ipa + unvoiced_ipa.substring(i+1, unvoiced_ipa.length());
-                }
-        }
-
-        return unvoiced_ipa;
-    }
     //this helper function accepets a char as string and a string[] as input, outputs the char position
     private static int checkVoicePosition(String single_ipa, String[] list){
         int pos =-1 ;
@@ -393,11 +364,132 @@ public class RuleEngine {
         }
         return pos;
     }
+    /*
+    * addStress accepts a whole sentence ipa and returns stressed ipa
+    * default stress position is 0, when wiki can not give position
+    * special cases to be checked first, single syllable,then always stressed
+    *
+    * syllable_sentence is the sentence as syllable format,need to be divide into words first
+    * and then iterate words.
+    * for each word, covert word string to hashmap<int, string>
+    * key 0 is stressed, key
+    * key -1 ~ -9 is pre-stressed
+    * key 1 ~ 9 is post-stressed
+    * */
+    public static String addStress(String syllable_sentence, String ipa){
+        String stress_ipa = "";
+        String [] word_list = syllable_sentence.split(" ");
+        String [] ipa_list = ipa.split(" ");
+        for (int i=0; i < word_list.length; i++){
+            //get the ipa from wiki
+            //List<String> wiki_ipa = getIPAFromWikitionary(word_list[i].replace(".",""));
+            int wiki_position = getStressPositionFromWikitionary(word_list[i].replace(".",""));
+            stress_ipa = stress_ipa + stress_helper(wiki_position, word_list[i],ipa_list[i]) + " ";
+        }
+        return stress_ipa;
+    }
+
+    /*
+    * This helper function accepts stress position and single word ipa
+    * returns single word stressed ipa
+    * This can be called when user wants to change single word stress
+    *
+    * dis the int range from -100~0~100
+    * 0 is stressed, -100  is initial letter
+    * if stress is at 0 position, dis = -100
+    * */
+    public static String stress_helper(int stress_position, String word, String ipa){
+        word = word.toLowerCase();
+        String stress_ipa = "";
+        String[] ipa_syllables = ipa.split("\\.");
+        String[] word_syllables = word.split("\\.");
+            for(int i = 0; i<ipa_syllables.length; i++){
+                int dis = (i == 0 ) ? -100 : i-stress_position;
+                String IMF = (i == ipa_syllables.length-1) ? "M":"F";
+                String cur_vowel = Utils.pickSameChar(word_syllables[i], vowel_letter_string);
+                String pre_ws = new String();
+                pre_ws = (i>0) ? word_syllables[i-1]:"";
+                String replace = Utils.stress(IMF,stress_position, dis, cur_vowel, pre_ws, word_syllables[i], ipa_syllables[i]);
+                if(dis == 0 || (dis == -100 && stress_position == 0)){
+                    stress_ipa = stress_ipa + "'" + replace + ".";
+                }
+                else{
+                    stress_ipa = stress_ipa + replace + ".";
+                }
+            }
+        try {
+            stress_ipa = stress_ipa.substring(0, stress_ipa.length() - 1);
+        }catch (IndexOutOfBoundsException e){
+        }
+        stress_ipa = stress_ipa.replace(".'","'");
+        return stress_ipa;
+    }
+
+    public static List<String> getIPAFromWikitionary(String word){
+        Locale.setDefault(new Locale("ru"));
+        word = word.toLowerCase();
+
+        Document doc;
+        List<String> ipa_strings = new ArrayList<String>();
+
+        try {
+            // need http protocol
+            String url = "https://en.wiktionary.org/wiki/" + word;
+            doc = Jsoup.connect(url).get();
+
+            Elements E = doc.select("span.IPA");    //span with class=IPA
+            for (Element e : E) {
+                System.out.println("Found an IPA : " + e.text());
+                ipa_strings.add(e.text());
+            }
+
+        } catch (IOException e) {
+            System.out.println("!!!!This word is not found on wikitionary: "+word);
+            //e.printStackTrace();
+        }
+        return ipa_strings;
+
+    }
+
+    public static int getStressPositionFromWikitionary(String word){
+        Locale.setDefault(new Locale("ru"));
+        word = word.toLowerCase();
+        int pos = 0;
+        Document doc;
+        String ipa_strings = new String();
+
+        try {
+            // need http protocol
+            String url = "https://en.wiktionary.org/wiki/" + word;
+            doc = Jsoup.connect(url).get();
+
+            Elements E = doc.select("span.IPA");    //span with class=IPA
+            for (Element e : E) {
+                System.out.println("Found an IPA : " + e.text());
+                ipa_strings = e.text();
+            }
+
+        } catch (IOException e) {
+            System.out.println("!!!!This word is not found on wikitionary: "+word);
+            pos = 0;
+            //e.printStackTrace();
+        }
+
+        String[] syllables = ipa_strings.split("ɑ|a|ʌ|ɛ|i|ɪ|ɨ|o|u|ɔ|ɐ|ə");
+        for(int i = 0 ; i<syllables.length; i ++){
+            if(syllables[i].contains("ˈ")){
+                return i;
+            }
+        }
+        return pos;
+
+    }
 
     public static void main(String[] args){
         //хоронить:xʌ.rɑˈɲitʲ
         //String word2 = "Здравствуйте, мир!";отец бы:ɑˈtʲɛdz bɨ
-        String word2 ="обточить обход";
+        //начать nɑ 'tʃʲatʲ
+        String word2 = "бояться";
 
         String ipa2 = new String();
         ipa2 = Transcribe(word2);
