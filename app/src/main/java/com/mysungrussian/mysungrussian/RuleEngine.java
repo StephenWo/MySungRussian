@@ -28,11 +28,12 @@ public class RuleEngine {
     private static HashSet<String> pal_consant_set = new HashSet<String>(Arrays.asList("p","b","t","d","k","ɡ","f","s","ʃ","x","v","z","r","m","n","l"));
     private static HashSet<String> voiced_set = new HashSet<String>(Arrays.asList("v","ɡ","b","z","ʒ","d","ɣ"));
     private static HashSet<String> unvoiced_set = new HashSet<String>(Arrays.asList("f","k","p","s","ʃ","t","x"));
-    private static String voiced_string = "vɡbzʒdɣ";
-    private static String unvoiced_string = "fkpsʃtx";
-    private static String sonorant_string = "rmnl";
+    public static String voiced_string = "vɡbzʒdɣ";
+    public static String unvoiced_string = "fkpsʃtx";
+    public static String sonorant_string = "rmnl";
     private static String vowel_string ="ɑaʌɛiɪɨou";
     private static String vowel_letter_string = "аэыуояеёюи";
+    public static String consonants_letters = "бвгджзйклмнпрстфхцчшщ";
     //public static HashMap<Integer, String[]> tmp_syllables = new HashMap<Integer, String[]>();
 
     static {
@@ -408,13 +409,16 @@ public class RuleEngine {
         String[] ipa_syllables = ipa.split("\\.");
         String[] word_syllables = word.split("\\.");
 
-        if(ipa_syllables.length == 1){
+        //if(ipa_syllables.length == 1){
             //put the syllable to stress condition
-        }else{
+        //}else{
             for(int i = 0; i<ipa_syllables.length; i++){
                 int dis = (i == 0 ) ? -100 : i-stress_position;
+                String IMF = (i == ipa_syllables.length-1) ? "M":"F";
                 String cur_vowel = Utils.pickSameChar(word_syllables[i], vowel_letter_string);
-                String replace = Utils.stress(stress_position, dis, cur_vowel, word_syllables[i], ipa_syllables[i]);
+                String pre_ws = new String();
+                pre_ws = (i>0) ? word_syllables[i-1]:"";
+                String replace = Utils.stress(IMF,stress_position, dis, cur_vowel, pre_ws, word_syllables[i], ipa_syllables[i]);
                 if(dis == 0 || (dis == -100 && stress_position == 0)){
                     stress_ipa = stress_ipa + "'" + replace + ".";
                 }
@@ -422,9 +426,12 @@ public class RuleEngine {
                     stress_ipa = stress_ipa + replace + ".";
                 }
             }
+        //}
+        try {
+            stress_ipa = stress_ipa.substring(0, stress_ipa.length() - 1);
+        }catch (IndexOutOfBoundsException e){
         }
-        stress_ipa = stress_ipa.substring(0,stress_ipa.length()-1);
-        System.out.println("the stress position is " + stress_position);
+        stress_ipa = stress_ipa.replace(".'","'");
         return stress_ipa;
     }
 
@@ -480,7 +487,6 @@ public class RuleEngine {
 
         String[] syllables = ipa_strings.split("ɑ|a|ʌ|ɛ|i|ɪ|ɨ|o|u|ɔ|ɐ|ə");
         for(int i = 0 ; i<syllables.length; i ++){
-            System.out.println("current syallable is " + syllables[i]);
             if(syllables[i].contains("ˈ")){
                 return i;
             }
@@ -493,7 +499,7 @@ public class RuleEngine {
         //хоронить:xʌ.rɑˈɲitʲ
         //String word2 = "Здравствуйте, мир!";отец бы:ɑˈtʲɛdz bɨ
         //начать nɑ 'tʃʲatʲ
-        String word2 = "окна";
+        String word2 = "моей";
 
         String ipa2 = new String();
         ipa2 = Transcribe(word2);
