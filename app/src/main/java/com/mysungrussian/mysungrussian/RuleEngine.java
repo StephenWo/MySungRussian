@@ -132,13 +132,8 @@ public class RuleEngine {
         System.out.println("ipa after pal= " + sentence_ipa);
         sentence_ipa = changeVoiced(sentence_ipa);
         System.out.println("ipa after voice= " + sentence_ipa);
-
-        String temp_stress = addStress(syllable_sentence,sentence_ipa.trim());
-        System.out.println("ipa after stress= " + temp_stress);
-
-
-        System.out.println("sentence = " + sentence);
-        System.out.println("ipa = " + sentence_ipa);
+        sentence_ipa = addStress(syllable_sentence,sentence_ipa.trim());
+        System.out.println("ipa after stress= " + sentence_ipa);
 
         return sentence_ipa;
     }
@@ -408,10 +403,6 @@ public class RuleEngine {
         String stress_ipa = "";
         String[] ipa_syllables = ipa.split("\\.");
         String[] word_syllables = word.split("\\.");
-
-        //if(ipa_syllables.length == 1){
-            //put the syllable to stress condition
-        //}else{
             for(int i = 0; i<ipa_syllables.length; i++){
                 int dis = (i == 0 ) ? -100 : i-stress_position;
                 String IMF = (i == ipa_syllables.length-1) ? "M":"F";
@@ -426,7 +417,6 @@ public class RuleEngine {
                     stress_ipa = stress_ipa + replace + ".";
                 }
             }
-        //}
         try {
             stress_ipa = stress_ipa.substring(0, stress_ipa.length() - 1);
         }catch (IndexOutOfBoundsException e){
@@ -499,7 +489,7 @@ public class RuleEngine {
         //хоронить:xʌ.rɑˈɲitʲ
         //String word2 = "Здравствуйте, мир!";отец бы:ɑˈtʲɛdz bɨ
         //начать nɑ 'tʃʲatʲ
-        String word2 = "моей";
+        String word2 = "бояться";
 
         String ipa2 = new String();
         ipa2 = Transcribe(word2);

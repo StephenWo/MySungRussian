@@ -4,7 +4,7 @@ package com.mysungrussian.mysungrussian;
  * Created by hedai on 2016-03-10.
  */
 public class Utils {
-
+    public static String consonant_ipas = RuleEngine.voiced_string + RuleEngine.unvoiced_string + RuleEngine.sonorant_string;
     /*this helper function compares two strings and gives out the char
     *that exists in both strings
     */
@@ -25,6 +25,7 @@ public class Utils {
         if(vowel.equals("а")){return stress_а(dis, word_syl, ipa_syl);}
         else if(vowel.equals("о")){return stress_о(stresspos, dis, word_syl, ipa_syl);}
         else if(vowel.equals("е")){return stress_е(IMF, stresspos, dis, pre_ws, word_syl, ipa_syl);}
+        else if(vowel.equals("я")){return stress_е(IMF, stresspos, dis, pre_ws, word_syl, ipa_syl);}
         else{
             return ipa_syl;
         }
@@ -57,6 +58,7 @@ public class Utils {
     * stress o
     * when stress, "o" , (unstressed in certain foreign words, case is ignored for now )
     * immediate pre stress, initial letter "ɑ"
+    * case not handled, -100, 0, should be "ɑ", test case "бояться"
     * other wise "ʌ"
     * */
     public static String stress_о(Integer stresspos, Integer dis, String word_syl, String ipa_syl){
@@ -82,7 +84,6 @@ public class Utils {
         boolean cond_iv = (dis == -100 && word_syl.substring(0,1).equals("е"))||((pre_ws+word_syl).matches(pattern_iv));
         boolean cond_p = ipa_syl.matches(".*ɛ\\wʲ.*")||ipa_syl.matches(".*ɛtʃʲ.*")||ipa_syl.matches(".*ɛj.*");
         boolean cond_final = (IMF == "F")&&((RuleEngine.consonants_letters).contains(word_syl.substring(word_syl.length()-1)))&&(word_syl.substring(word_syl.length()-2).equals("е"));
-        String consonant_ipas = RuleEngine.voiced_string + RuleEngine.unvoiced_string + RuleEngine.sonorant_string;
         boolean cond_post_notP = false;
         boolean cond_pre_cons = false;
         try {
@@ -129,5 +130,57 @@ public class Utils {
         ipa_syl = ipa_syl.replace("jɛ", replacement);
         return ipa_syl;
     }
+
+    /*
+    * Stress я {"ɑ", "jɑ", "a", "ja", "ɪ", "jɪ", "i", "ji" ,"ʌ"})
+    * special cases are "ʌ"(not considered yet), "ɑ",ая, яя
+    * IMF indicates if it is the last syllable
+    *
+    * */
+    public static String stress_я(String IMF, Integer stresspos, Integer dis, String pre_ws, String word_syl, String ipa_syl){
+        String replacement = "ɑ";
+        boolean cond_p = ipa_syl.matches(".*ɑ\\wʲ.*")||ipa_syl.matches(".*ɑtʃʲ.*")||ipa_syl.matches(".*ɑj.*");
+        String pattern_iv = "(.*ая.*)|(.*эя.*)|(.*ыя.*)|(.*уя.*)|(.*оя.*)|(.*яя.*)|(.*ея.*)|(.*ёя.*)|(.*юя.*)|(.*ия.*)";
+        boolean cond_iv = (dis == -100 && word_syl.substring(0,1).equals("я"))||((pre_ws+word_syl).matches(pattern_iv));
+        boolean cond_final = (IMF == "F")&&((RuleEngine.consonants_letters).contains(word_syl.substring(word_syl.length()-1)))&&(word_syl.substring(word_syl.length()-2).equals("я"));
+        boolean cond_post_notP = false;
+        boolean cond_pre_P = ipa_syl.matches(".*ʲɑ.*");
+        try {
+            cond_post_notP = (!cond_p) && (consonant_ipas.contains(ipa_syl.substring(ipa_syl.indexOf("ɑ") + 1)));
+        }catch (IndexOutOfBoundsException e){
+            cond_post_notP =false;
+        }
+        if(dis == 0 || (dis == -100 & stresspos == 0)){
+            if(cond_iv){
+                if(cond_post_notP || cond_final){
+                    replacement = "jɑ";
+                }else if(cond_p){
+                    replacement = "ja";
+                }
+            }else{
+                replacement = (cond_p)? "a":"ɑ";
+            }
+        }else{
+            String ending_two = "";
+            try{
+                ending_two = word_syl.substring(word_syl.length()-2,word_syl.length());
+            }catch(IndexOutOfBoundsException e){}
+            if(IMF == "F" && (ending_two.equals("ая")||ending_two.equals("яя"))){
+                replacement = "ɑ";
+            }else if(cond_iv){
+                if(cond_post_notP || cond_final){
+                    replacement = "jɪ";
+                }else if(cond_p){
+                    replacement = "ji";
+                }
+            }else if (cond_pre_P){
+                replacement = "ɪ";
+            }
+
+        }
+        ipa_syl = ipa_syl.replace("jɑ", replacement);
+        return ipa_syl;
+    }
+
 
 }
