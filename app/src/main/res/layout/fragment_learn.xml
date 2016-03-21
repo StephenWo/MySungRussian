@@ -13,22 +13,38 @@
 
         <Button
             android:id="@+id/btn_record"
-            android:layout_width="100dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:text="Record"
-            android:layout_marginTop="92dp"
             android:onClick="onClickRecord"
-            android:layout_alignParentTop="true"
+            android:layout_alignTop="@+id/btn_play"
             android:layout_alignParentStart="true" />
 
         <Button
             android:id="@+id/btn_play"
-            android:layout_width="wrap_content"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:text="Play"
             android:onClick="onClickPlay"
-            android:layout_below="@+id/btn_record"
-            android:layout_alignParentStart="true"
-            android:layout_alignEnd="@+id/btn_record" />
+            android:layout_marginBottom="77dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true" />
+
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_centerHorizontal="true"
+            android:id="@+id/frameLayout2"
+            android:layout_above="@+id/btn_play">
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/chart"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_alignParentStart="true" />
+        </FrameLayout>
+
+
     </RelativeLayout>
 </FrameLayout>

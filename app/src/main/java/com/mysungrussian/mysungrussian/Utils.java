@@ -25,7 +25,7 @@ public class Utils {
         if(vowel.equals("а")){return stress_а(dis, word_syl, ipa_syl);}
         else if(vowel.equals("о")){return stress_о(stresspos, dis, word_syl, ipa_syl);}
         else if(vowel.equals("е")){return stress_е(IMF, stresspos, dis, pre_ws, word_syl, ipa_syl);}
-        else if(vowel.equals("я")){return stress_е(IMF, stresspos, dis, pre_ws, word_syl, ipa_syl);}
+        else if(vowel.equals("я")){return stress_я(IMF, stresspos, dis, pre_ws, word_syl, ipa_syl);}
         else{
             return ipa_syl;
         }

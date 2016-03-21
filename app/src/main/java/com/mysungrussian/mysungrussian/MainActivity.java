@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.graphics.Color;
 import android.net.Uri;
+import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -30,6 +33,10 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
 
         transFrag = new TranscribeFragment();
         savedFrag = new SavedFragment();
@@ -85,17 +92,34 @@ public class MainActivity extends AppCompatActivity
     public void tabBtnOnClick (View v){
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        Button btn_trans = (Button) findViewById(R.id.btn_transcribe);
+        Button btn_learn = (Button) findViewById(R.id.btn_learn);
+        Button btn_saved = (Button) findViewById(R.id.btn_saved);
+
+
         switch (v.getId()) {
             case R.id.btn_transcribe:
+                btn_trans.setBackgroundColor(Color.parseColor("#ffffff"));
+                btn_saved.setBackgroundColor(Color.parseColor("#c8c8c8"));
+                btn_learn.setBackgroundColor(Color.parseColor("#c8c8c8"));
+
                 fragmentTransaction.replace(R.id.fragment_container, transFrag);
                 fragmentTransaction.commit();
                 break;
             case R.id.btn_saved:
+                btn_saved.setBackgroundColor(Color.parseColor("#ffffff"));
+                btn_trans.setBackgroundColor(Color.parseColor("#c8c8c8"));
+                btn_learn.setBackgroundColor(Color.parseColor("#c8c8c8"));
+
                 fragmentTransaction.replace(R.id.fragment_container, savedFrag);
                 fragmentTransaction.commit();
                 break;
             case R.id.btn_learn:
-                //Just put the same empty fragment here
+                btn_learn.setBackgroundColor(Color.parseColor("#ffffff"));
+                btn_saved.setBackgroundColor(Color.parseColor("#c8c8c8"));
+                btn_trans.setBackgroundColor(Color.parseColor("#c8c8c8"));
+
                 fragmentTransaction.replace(R.id.fragment_container, learnFrag);
                 fragmentTransaction.commit();
                 break;
@@ -112,6 +136,8 @@ public class MainActivity extends AppCompatActivity
         }
 
         EditText input_field = (EditText) findViewById(R.id.input_field);
+        EditText output_field = (EditText) findViewById(R.id.output_field2);
+
         //input_field.setText("Здравствуйте тотчас же время работы по созданию интеллектуальных систем видеонаблюдения на избирательных линий розлива растительного происхождения товаров для личного использования");
         String input = input_field.getText().toString();
         input_field.setVisibility(View.INVISIBLE);
@@ -123,8 +149,8 @@ public class MainActivity extends AppCompatActivity
 
         if (!input.isEmpty()) {
             // Get our output_field~
-            EditText output_field = (EditText) findViewById(R.id.output_field2);
             output_field.setVisibility(View.INVISIBLE);
+            output_field.setFocusable(false);
 
             // The formatted strings from this trunk of code!
             String formatted_input = "";
@@ -132,7 +158,7 @@ public class MainActivity extends AppCompatActivity
             int line_width = 0;
 
 
-            //Split into sentences before feeding into RuleEngine.Transcribe()
+            //Split into sentences before feeding into RuleEngine.Transcribe() TODO: put this into RuleEngine
             String[] input_sentences = input.split("[,.!?]");
             for (int counter = 0; counter<input_sentences.length; counter ++) {
                 // Feed into RuleEngine, call Transcribe()
@@ -143,12 +169,12 @@ public class MainActivity extends AppCompatActivity
                 Log.d("Che", "transcribing sentence "+input_sentence);
 
                 String output_ipas = RuleEngine.Transcribe(input_sentence);
-                output_ipas = output_ipas.substring(1);
                 Log.d("Che", "transcribed sentence #" + counter + ", the ipa is:" + output_ipas);
 
                 // Tokenize the input and output string with space token
                 String[] input_words = input_sentence.split(" ");
                 String[] output_words = output_ipas.split(" ");
+
 
                 for (int i = 0; i<input_words.length; i++) {
                     String temp_in = input_words[i];
@@ -176,10 +202,10 @@ public class MainActivity extends AppCompatActivity
                         line_width = 0;
                     }*/
 
-                    // Handle end of sentence
+                    // TODO: Handle end of sentence, add back the sign
                     if (counter==input_words.length-1) {
-                        temp_in += ".";
-                        temp_out += ".";
+                        //temp_in += ".";
+                        //temp_out += ".";
                     }
 
                     // Handle different length: pad space
@@ -217,8 +243,18 @@ public class MainActivity extends AppCompatActivity
             input_field.bringToFront();
 
         }
+        else {
+            output_field.setText("");
+        }
+    }
+    public void onClickClear(View v) {
+        TextView in = (TextView) findViewById(R.id.input_field);
+        TextView out = (TextView) findViewById(R.id.output_field2);
 
+        in.setText("");
+        out.setText("");
 
+        in.setFocusable(true);
     }
 
     public void onClickRecord(View v) {

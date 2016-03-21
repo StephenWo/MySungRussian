@@ -22,7 +22,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.view.ViewGroup.LayoutParams;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -30,8 +32,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 
-
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.musicg.wave.Wave;
 import com.musicg.wave.WaveHeader;
 import com.musicg.wave.extension.Spectrogram;
@@ -55,22 +64,22 @@ public class LearnFragment extends Fragment {
     private static String mFileName = null;
     private static String mWavFileName = null;
 
-    private MediaRecorder mRecorder = null;
-    private MediaPlayer   mPlayer = null;
-
     private static final int RECORDER_SAMPLERATE = 44100;
-
     private static final int RECORDER_CHANNELS = AudioFormat.CHANNEL_IN_MONO;
-
     private static final int RECORDER_AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
 
     private AudioRecord recorder = null;
     private Thread recordingThread = null;
     private boolean isRecording = false;
 
-    int BufferElements2Rec = 1024; // want to play 2048 (2K) since 2 bytes we use only 1024
+    int BufferElements2Rec = 1024; // will be reassigned later
     int BytesPerElement = 2; // 2 bytes in 16bit format
 
+    Wave wave = null;
+    byte[] waveBuffer = null;
+
+    // For plotting the spectrogram
+    private LineChart mLineChart;
 
     private void playRecording() {
 
@@ -182,7 +191,7 @@ public class LearnFragment extends Fragment {
 
 
     // onClick for the play button
-    // Play the 2sec .wav file recorded before...........
+    // Play the 1 sec .wav file recorded before...........
     public void onClickPlay (View v){
         final Button btn_play = (Button)getActivity().findViewById(R.id.btn_play);
         btn_play.setClickable(false);
@@ -191,23 +200,24 @@ public class LearnFragment extends Fragment {
         //Start playing
         //onPlay(true);
         playRecording();
+        btn_play.setClickable(true);
+        btn_play.setAlpha(1.0f);
 
-        //wait 2 second and stop
+        //wait 1 second and stop
         btn_play.postDelayed(new Runnable() {
 
             @Override
             public void run() {
-                btn_play.setClickable(true);
-                btn_play.setAlpha(1.0f);
+                //btn_play.setClickable(true);
+                //btn_play.setAlpha(1.0f);
                 //onPlay(false);
             }
-        }, 2000);
+        }, 1000);
 
-        //mySpectrogram(v);
     }
 
     // onClick for the Record button
-    // Starts recording and stop after 2 sec, save to .wav file to be processed by musicg
+    // Starts recording and stop after 1 sec, save to .wav file to be processed by musicg
     public void onClickRecord (View v){
         final Button btn_record = (Button) getActivity().findViewById(R.id.btn_record);
         btn_record.setClickable(false);
@@ -215,7 +225,8 @@ public class LearnFragment extends Fragment {
 
         //Start recording
         startRecording();
-        //wait 2 second and stop
+
+        //wait 1 second and stop
         btn_record.postDelayed(new Runnable() {
 
             @Override
@@ -224,18 +235,32 @@ public class LearnFragment extends Fragment {
                 btn_record.setAlpha(1.0f);
 
                 stopRecording();
+
+                // Audio processing?
+                WaveHeader waveHeader = new WaveHeader();
+                waveHeader.setChannels(1);
+                waveHeader.setBitsPerSample(16);
+                waveHeader.setSampleRate(RECORDER_SAMPLERATE);
+
+                File file = new File(mFileName);
+                int size = (int) file.length();
+                byte[] bytes = new byte[size];
+                try {
+                    BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));
+                    buf.read(bytes, 0, bytes.length);
+                    buf.close();
+                } catch (FileNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                wave = new Wave(waveHeader, bytes);
+                mySpectrogram();
             }
-        }, 2000);
+        }, 1000);
 
-        // Audio processing?
-
-        /*waveHeader = new WaveHeader();
-        waveHeader.setChannels(1);
-        waveHeader.setBitsPerSample(16);
-        waveHeader.setSampleRate(audioRecord.getSampleRate());
-
-        Wave wave = new Wave(waveHeader, buffer);*/
-        //wave.getSpectrogram();
     }
 
     /*public byte[] getFrameBytes(){
@@ -263,25 +288,61 @@ public class LearnFragment extends Fragment {
     }*/
 
     // Audio processing with musicg
-    private void mySpectrogram (View v){
+    private void mySpectrogram (){
 
 
         // Get the wave from the audio file...
-        Wave wave = new Wave(mFileName);
-        byte[] b = wave.getBytes();
-        Log.d("Che", mFileName);
-        Log.d("Che", "the data length is "+b.length);
+        //Wave wave = new Wave(mFileName);
+        //byte[] b = wave.getBytes();
+        //Log.d("Che", mFileName);
+        //Log.d("Che", "the data length is "+b.length);
 
         // Get spectrogram
         Spectrogram spectrogram = wave.getSpectrogram();
 
         double [][] data = spectrogram.getNormalizedSpectrogramData();
+        Log.d("Che", "The data length is: "+data.length);
+        ArrayList<Entry> entries = new ArrayList<Entry>() ;
+        for (int i=0; i<data.length; i++){
+            float sum = 0;
+            for (int j=0; j<data[0].length; j++){
+                sum += data[i][j];
+            }
+            entries.add(new Entry(sum, i));
+        }
+        //Log.d("Che", "The data rowSum is: "+Arrays.toString(rowSum));
+        // Plot this thing, following https://github.com/PhilJay/MPAndroidChart/wiki/Setting-Data
+        // in this example, a LineChart is initialized from xml
+        mLineChart = (LineChart) getActivity().findViewById(R.id.chart);
+        if (mLineChart==null){
+            Log.d("Che", "Whats your problem?");
+        }
+
+        LineDataSet setData = new LineDataSet(entries, "Cherry~~~~");
+        setData.setAxisDependency(YAxis.AxisDependency.LEFT);
+        ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
+        dataSets.add(setData);
+        ArrayList<String> xVals = new ArrayList<String>();
+        for (int i = 0; i<data.length; i++){
+            xVals.add(Integer.toString(i));
+        }
+        LineData lineData = new LineData(xVals, dataSets);
+        if (mLineChart==null){
+            Log.d("Che", "?!!!!");
+        } else if (lineData==null) {
+            Log.d("Che", "?!!!!!!");
+        }
+        mLineChart.setData(lineData);
+        mLineChart.invalidate(); // refresh
 
         // Render the spectrogram
         SpectrogramView mView = new SpectrogramView(getActivity(), data);
         LinearLayout mLayout = (LinearLayout) getActivity().findViewById(R.id.linearLayout);
-        mLayout.addView(mView);
+        LinearLayout.LayoutParams lop = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
+        mLayout.addView(mView, 0, lop);
+
     }
+
 
     private static class SpectrogramView extends View {
         private Paint paint = new Paint();
@@ -308,6 +369,8 @@ public class LearnFragment extends Fragment {
                     }
                 }
                 bmp = Bitmap.createBitmap(arrayCol, width, height, Bitmap.Config.ARGB_8888);
+                bmp = Bitmap.createScaledBitmap(bmp, 270, 512, false);
+                Log.d("Che", "width "+width+", height "+height);
 
             } else {
                 System.err.println("Data Corrupt");
@@ -351,14 +414,14 @@ public class LearnFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        if (mRecorder != null) {
-            mRecorder.release();
-            mRecorder = null;
+        if (recorder != null) {
+            recorder.release();
+            recorder = null;
         }
 
-        if (mPlayer != null) {
-            mPlayer.release();
-            mPlayer = null;
+        if (recorder != null) {
+            recorder.release();
+            recorder = null;
         }
     }
 
@@ -366,7 +429,9 @@ public class LearnFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_learn, container, false);
+        View v =  inflater.inflate(R.layout.fragment_learn, container, false);
+
+        return v;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
