@@ -336,10 +336,10 @@ public class LearnFragment extends Fragment {
         mLineChart.invalidate(); // refresh
 
         // Render the spectrogram
-        SpectrogramView mView = new SpectrogramView(getActivity(), data);
-        LinearLayout mLayout = (LinearLayout) getActivity().findViewById(R.id.linearLayout);
-        LinearLayout.LayoutParams lop = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
-        mLayout.addView(mView, 0, lop);
+        //SpectrogramView mView = new SpectrogramView(getActivity(), data);
+        //LinearLayout mLayout = (LinearLayout) getActivity().findViewById(R.id.linearLayout);
+        //LinearLayout.LayoutParams lop = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
+        //mLayout.addView(mView, 0, lop);
 
     }
 

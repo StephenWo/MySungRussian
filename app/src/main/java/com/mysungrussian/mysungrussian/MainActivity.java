@@ -1,5 +1,6 @@
 package com.mysungrussian.mysungrussian;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -9,7 +10,11 @@ import android.net.Uri;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +22,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 import java.util.StringTokenizer;
@@ -27,6 +33,9 @@ public class MainActivity extends AppCompatActivity
     TranscribeFragment transFrag;
     SavedFragment savedFrag;
     LearnFragment learnFrag;
+
+
+    private String[] tabs = { "Top Rated", "Games", "Movies" };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,13 +51,32 @@ public class MainActivity extends AppCompatActivity
         savedFrag = new SavedFragment();
         learnFrag = new LearnFragment();
 
+        // Use the transFrag as the default main fragment
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.add(R.id.fragment_container, transFrag).commit();
 
-
         // For hiding keyboard when outside text box is clicked
         setupUI(findViewById(R.id.fragment_container));
+
+        // For tabs
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
+
+        //android.support.v7.app.ActionBar ab = getSupportActionBar();
+        //ab.setDisplayHomeAsUpEnabled(true);
+
+        // Clicking the toolbar will take user back to transFrag
+        myToolbar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Toast.makeText(getApplicationContext(), "Toolbar title clicked", Toast.LENGTH_SHORT).show();
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.replace(R.id.fragment_container, transFrag).commit();
+            }
+        });
+
     }
 
     // Method to hide keyboard
@@ -88,43 +116,50 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
 
-    public void tabBtnOnClick (View v){
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        Button btn_trans = (Button) findViewById(R.id.btn_transcribe);
-        Button btn_learn = (Button) findViewById(R.id.btn_learn);
-        Button btn_saved = (Button) findViewById(R.id.btn_saved);
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                // User chose the "Settings" item, show the app settings UI...
+                Log.d("Che", "in action_settings");
+                return true;
 
-
-        switch (v.getId()) {
-            case R.id.btn_transcribe:
-                btn_trans.setBackgroundColor(Color.parseColor("#ffffff"));
-                btn_saved.setBackgroundColor(Color.parseColor("#c8c8c8"));
-                btn_learn.setBackgroundColor(Color.parseColor("#c8c8c8"));
-
-                fragmentTransaction.replace(R.id.fragment_container, transFrag);
-                fragmentTransaction.commit();
-                break;
-            case R.id.btn_saved:
-                btn_saved.setBackgroundColor(Color.parseColor("#ffffff"));
-                btn_trans.setBackgroundColor(Color.parseColor("#c8c8c8"));
-                btn_learn.setBackgroundColor(Color.parseColor("#c8c8c8"));
-
-                fragmentTransaction.replace(R.id.fragment_container, savedFrag);
-                fragmentTransaction.commit();
-                break;
-            case R.id.btn_learn:
-                btn_learn.setBackgroundColor(Color.parseColor("#ffffff"));
-                btn_saved.setBackgroundColor(Color.parseColor("#c8c8c8"));
-                btn_trans.setBackgroundColor(Color.parseColor("#c8c8c8"));
-
+            case R.id.action_learn:
+                // User chose the "Favorite" action, mark the current item
+                // as a favorite...
+                Log.d("Che", "in action_learn, change fragment");
                 fragmentTransaction.replace(R.id.fragment_container, learnFrag);
                 fragmentTransaction.commit();
-                break;
+                return true;
+
+            case R.id.action_files:
+                // User chose the "Favorite" action, mark the current item
+                // as a favorite...
+                Log.d("Che", "in action_files, change fragment");
+                fragmentTransaction.replace(R.id.fragment_container, savedFrag);
+                fragmentTransaction.commit();
+
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.tool_bar_items, menu);
+        return true;
+    }
+
 
     public void onClickTranscribe (View v){
         //hideSoftKeyboard();
