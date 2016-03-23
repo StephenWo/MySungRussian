@@ -202,6 +202,11 @@ public class MainActivity extends AppCompatActivity
                 // Feed into RuleEngine, call Transcribe()
                 // (the result is a string of IPAs)
                 String input_sentence = input_sentences[counter];
+
+                if (input_sentence.isEmpty()){
+                    continue;
+                }
+
                 input_sentence = input_sentence.replaceAll("\n", "");   //Strip newlines
                 input_sentence = input_sentence.replaceAll(" +", " ");   //Strip spaces if >1 space
                 Log.d("Che", "transcribing sentence "+input_sentence);
@@ -279,7 +284,7 @@ public class MainActivity extends AppCompatActivity
 
             current_formatted_input = formatted_input;
             current_formatted_output = formatted_output;
-            setText();
+            mySetText();
 
         }
         else {
@@ -287,8 +292,9 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void setText (){
-        if (!current_formatted_input.isEmpty() && !current_formatted_output.isEmpty() ){
+    public void mySetText (){
+        Log.d("Che", "mySetText");
+        if (!current_formatted_input.isEmpty()){
             EditText input_field = (EditText) findViewById(R.id.input_field);
             EditText output_field = (EditText) findViewById(R.id.output_field2);
 
@@ -306,13 +312,22 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void onClickClear(View v) {
-        TextView in = (TextView) findViewById(R.id.input_field);
-        TextView out = (TextView) findViewById(R.id.output_field2);
+        Log.d("Che", "onClickClear");
 
-        in.setText("");
-        out.setText("");
+        current_formatted_input = "";
+        current_formatted_output = "";
 
-        in.setFocusable(true);
+        EditText input_field = (EditText) findViewById(R.id.input_field);
+        EditText output_field = (EditText) findViewById(R.id.output_field2);
+
+        // Put formatted input output into EditText
+        input_field.setVisibility(View.VISIBLE);
+        input_field.setText(current_formatted_input);
+        output_field.setVisibility(View.VISIBLE);
+        output_field.setText(current_formatted_output);
+
+        input_field.bringToFront();
+
     }
 
     public void onClickRecord(View v) {

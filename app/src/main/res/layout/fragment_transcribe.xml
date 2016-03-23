@@ -85,7 +85,8 @@
                 android:layout_alignParentBottom="true"
                 android:layout_alignStart="@+id/frameLayout"
                 android:layout_marginStart="63dp"
-                android:layout_margin="7dp" />
+                android:layout_margin="7dp"
+                android:clickable="true" />
 
         </FrameLayout>
 

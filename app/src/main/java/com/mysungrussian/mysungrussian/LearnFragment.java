@@ -13,12 +13,14 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Environment;
 import android.util.Log;
+import android.view.FrameStats;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.media.MediaRecorder;
 import android.media.MediaPlayer;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -45,6 +47,7 @@ import com.musicg.wave.Wave;
 import com.musicg.wave.WaveHeader;
 import com.musicg.wave.extension.Spectrogram;
 
+import android.speech.SpeechRecognizer;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -71,6 +74,7 @@ public class LearnFragment extends Fragment {
     private AudioRecord recorder = null;
     private Thread recordingThread = null;
     private boolean isRecording = false;
+    public static int delayTime = 1000;
 
     int BufferElements2Rec = 1024; // will be reassigned later
     int BytesPerElement = 2; // 2 bytes in 16bit format
@@ -80,6 +84,7 @@ public class LearnFragment extends Fragment {
 
     // For plotting the spectrogram
     private LineChart mLineChart;
+
 
     private void playRecording() {
 
@@ -102,6 +107,10 @@ public class LearnFragment extends Fragment {
             while((i = inputStream.read(audioData)) != -1) {
                 audioTrack.write(audioData,0,i);
             }
+
+            // Audio processing?
+            wave = myWave();
+            mySpectrogram();
 
         } catch(FileNotFoundException fe) {
             Log.e(LOG_TAG,"File not found");
@@ -212,7 +221,7 @@ public class LearnFragment extends Fragment {
                 //btn_play.setAlpha(1.0f);
                 //onPlay(false);
             }
-        }, 1000);
+        }, delayTime);
 
     }
 
@@ -237,71 +246,56 @@ public class LearnFragment extends Fragment {
                 stopRecording();
 
                 // Audio processing?
-                WaveHeader waveHeader = new WaveHeader();
-                waveHeader.setChannels(1);
-                waveHeader.setBitsPerSample(16);
-                waveHeader.setSampleRate(RECORDER_SAMPLERATE);
-
-                File file = new File(mFileName);
-                int size = (int) file.length();
-                byte[] bytes = new byte[size];
-                try {
-                    BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));
-                    buf.read(bytes, 0, bytes.length);
-                    buf.close();
-                } catch (FileNotFoundException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                wave = new Wave(waveHeader, bytes);
+                wave = myWave();
                 mySpectrogram();
-            }
-        }, 1000);
 
+            }
+        }, delayTime);
+
+        Boolean b = SpeechRecognizer.isRecognitionAvailable(getActivity());
+        Log.d("Che", "Speech recognize available? " + b.toString());
     }
 
-    /*public byte[] getFrameBytes(){
-        audioRecord.read(buffer, 0, frameByteSize);
 
-        // analyze sound
-        int totalAbsValue = 0;
-        short sample = 0;
-        float averageAbsValue = 0.0f;
+    private Wave myWave (){
+        WaveHeader waveHeader = new WaveHeader();
+        waveHeader.setChannels(1);
+        waveHeader.setBitsPerSample(16);
+        waveHeader.setSampleRate(RECORDER_SAMPLERATE);
 
-        for (int i = 0; i < frameByteSize; i += 2) {
-            sample = (short)((buffer[i]) | buffer[i + 1] << 8);
-            totalAbsValue += Math.abs(sample);
+        File file = new File(mFileName);
+        int size = (int) file.length();
+        byte[] bytes = new byte[size];
+        try {
+            BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));
+            buf.read(bytes, 0, bytes.length);
+            buf.close();
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        averageAbsValue = totalAbsValue / frameByteSize / 2;
-
-        //System.out.println(averageAbsValue);
-
-        // no input
-        if (averageAbsValue < 30){
-            return null;
-        }
-
-        return buffer;
-    }*/
+        wave = new Wave(waveHeader, bytes);
+        return wave;
+    }
 
     // Audio processing with musicg
     private void mySpectrogram (){
 
-
         // Get the wave from the audio file...
-        //Wave wave = new Wave(mFileName);
-        //byte[] b = wave.getBytes();
-        //Log.d("Che", mFileName);
-        //Log.d("Che", "the data length is "+b.length);
+        Wave wave = new Wave(mFileName);
+        byte[] b = wave.getBytes();
+        Log.d("Che", mFileName);
+        Log.d("Che", "the data length is "+b.length);
 
         // Get spectrogram
         Spectrogram spectrogram = wave.getSpectrogram();
 
         double [][] data = spectrogram.getNormalizedSpectrogramData();
-        Log.d("Che", "The data length is: "+data.length);
+
+        /*Log.d("Che", "The data length is: "+data.length);
         ArrayList<Entry> entries = new ArrayList<Entry>() ;
         for (int i=0; i<data.length; i++){
             float sum = 0;
@@ -318,6 +312,7 @@ public class LearnFragment extends Fragment {
             Log.d("Che", "Whats your problem?");
         }
 
+        // Render the spectrogram 1
         LineDataSet setData = new LineDataSet(entries, "Cherry~~~~");
         setData.setAxisDependency(YAxis.AxisDependency.LEFT);
         ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
@@ -327,19 +322,16 @@ public class LearnFragment extends Fragment {
             xVals.add(Integer.toString(i));
         }
         LineData lineData = new LineData(xVals, dataSets);
-        if (mLineChart==null){
-            Log.d("Che", "?!!!!");
-        } else if (lineData==null) {
-            Log.d("Che", "?!!!!!!");
-        }
         mLineChart.setData(lineData);
-        mLineChart.invalidate(); // refresh
+        mLineChart.invalidate(); // refresh*/
 
-        // Render the spectrogram
-        //SpectrogramView mView = new SpectrogramView(getActivity(), data);
-        //LinearLayout mLayout = (LinearLayout) getActivity().findViewById(R.id.linearLayout);
-        //LinearLayout.LayoutParams lop = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
-        //mLayout.addView(mView, 0, lop);
+        // Render the spectrogram 2
+        Log.d("Che", "Rendering spectrogram using SpectrogramView");
+        SpectrogramView mView = new SpectrogramView(getActivity(), data);
+        FrameLayout mLayout = (FrameLayout) getActivity().findViewById(R.id.mySpectrumFrame);
+        mLayout.removeAllViews();
+        FrameLayout.LayoutParams lop = new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
+        mLayout.addView(mView, 0, lop);
 
     }
 
@@ -368,8 +360,10 @@ public class LearnFragment extends Fragment {
                         counter ++;
                     }
                 }
+
+                //Calling createBitmap(int[] colors, int width, int height, Bitmap.Config config)
                 bmp = Bitmap.createBitmap(arrayCol, width, height, Bitmap.Config.ARGB_8888);
-                bmp = Bitmap.createScaledBitmap(bmp, 270, 512, false);
+                //bmp = Bitmap.createScaledBitmap(bmp, 270, 512, false);
                 Log.d("Che", "width "+width+", height "+height);
 
             } else {

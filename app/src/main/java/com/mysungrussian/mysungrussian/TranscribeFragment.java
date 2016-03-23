@@ -73,7 +73,6 @@ public class TranscribeFragment extends Fragment {
         // Inflate the layout for this fragment
         View v =  inflater.inflate(R.layout.fragment_transcribe, container, false);
 
-
         return v;
     }
 
@@ -100,7 +99,7 @@ public class TranscribeFragment extends Fragment {
         super.onResume();
 
         //Set current input output
-        ((MainActivity)getActivity()).setText();
+        ((MainActivity)getActivity()).mySetText();
         Log.d("Che", "Shud have set text now");
 
     }
