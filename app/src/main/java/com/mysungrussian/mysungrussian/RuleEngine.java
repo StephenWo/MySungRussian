@@ -489,7 +489,7 @@ public class RuleEngine {
         //хоронить:xʌ.rɑˈɲitʲ
         //String word2 = "Здравствуйте, мир!";отец бы:ɑˈtʲɛdz bɨ
         //начать nɑ 'tʃʲatʲ
-        String word2 = "бояться";
+        String word2 = "Здравствуйте";
 
         String ipa2 = new String();
         ipa2 = Transcribe(word2);

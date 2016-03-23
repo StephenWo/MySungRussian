@@ -25,7 +25,9 @@ public class Utils {
         if(vowel.equals("а")){return stress_а(dis, word_syl, ipa_syl);}
         else if(vowel.equals("о")){return stress_о(stresspos, dis, word_syl, ipa_syl);}
         else if(vowel.equals("е")){return stress_е(IMF, stresspos, dis, pre_ws, word_syl, ipa_syl);}
-        else if(vowel.equals("я")){return stress_е(IMF, stresspos, dis, pre_ws, word_syl, ipa_syl);}
+        else if(vowel.equals("я")){return stress_я(IMF, stresspos, dis, pre_ws, word_syl, ipa_syl);}
+        else if(vowel.equals("ё")){return stress_ё(stresspos, dis, pre_ws,word_syl,ipa_syl);}
+        else if(vowel.equals("э")){return stress_э(stresspos, dis, ipa_syl);}
         else{
             return ipa_syl;
         }
@@ -181,6 +183,46 @@ public class Utils {
         ipa_syl = ipa_syl.replace("jɑ", replacement);
         return ipa_syl;
     }
+
+    /*
+    * stressed "э", { "ɛ", "ɪ", "e"}
+    * "ɛ", stressed, followed by palatalized cons
+    * "e", stressed, initial, followed by palatalized cons
+    * "ɪ", unstressed, not preceded /j/
+    * */
+    public static String stress_э(Integer stresspos, Integer dis, String ipa_syl) {
+        String replacement  = "ɛ";
+        if(dis == 0 || (dis == -100 & stresspos == 0)){
+            boolean cond_p = ipa_syl.matches(".*ɛ\\wʲ.*")||ipa_syl.matches(".*ɛtʃʲ.*")||ipa_syl.matches(".*ɛj.*");
+            if(cond_p){
+                replacement = (dis == -100)? "e":"ɛ";
+            }
+        }else if (!ipa_syl.matches(".*ʲɛ.*")&&!ipa_syl.matches(".*jɛ.*")){
+            replacement = "ɪ";
+        }
+        return replacement;
+    }
+
+    /*
+    * "ё", {"o", "jo"}
+    * "jo" stressed initial or following a vowel
+    *"o" default
+    * */
+
+    public static String stress_ё(Integer stresspos, Integer dis, String pre_ws,String word_syl,String ipa_syl){
+        String replacement  = "jo";
+        if(dis == 0 || (dis == -100 & stresspos == 0)){
+            String pattern_iv = "(.*аё.*)|(.*эё.*)|(.*ыё.*)|(.*уё.*)|(.*оё.*)|(.*яё.*)|(.*её.*)|(.*ёё.*)|(.*юё.*)|(.*иё.*)";
+            boolean cond_iv = (dis == -100 && word_syl.substring(0,1).equals("я"))||((pre_ws+word_syl).matches(pattern_iv));
+            if(!cond_iv)
+                replacement = "o";
+        }
+        return replacement;
+    }
+
+
+
+
 
 
 }
