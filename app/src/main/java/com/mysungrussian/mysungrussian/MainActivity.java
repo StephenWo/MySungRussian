@@ -34,6 +34,9 @@ public class MainActivity extends AppCompatActivity
     SavedFragment savedFrag;
     LearnFragment learnFrag;
 
+    String current_formatted_input = "";
+    String current_formatted_output = "";
+
 
     private String[] tabs = { "Top Rated", "Games", "Movies" };
 
@@ -118,15 +121,15 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if(getCurrentFocus() != null) {
+            hideSoftKeyboard(MainActivity.this);
+            getCurrentFocus().clearFocus();
+        }
 
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         switch (item.getItemId()) {
-            case R.id.action_settings:
-                // User chose the "Settings" item, show the app settings UI...
-                Log.d("Che", "in action_settings");
-                return true;
 
             case R.id.action_learn:
                 // User chose the "Favorite" action, mark the current item
@@ -178,7 +181,7 @@ public class MainActivity extends AppCompatActivity
         input_field.setVisibility(View.INVISIBLE);
         input_field.clearFocus();
         int field_width = input_field.getWidth();
-        Log.d("Che", "Field width is "+field_width);
+        Log.d("Che", "Field width is " + field_width);
 
         Log.d("Che", "transcribing, the input is: " + input);
 
@@ -269,19 +272,39 @@ public class MainActivity extends AppCompatActivity
             }
 
             // Put formatted input output into EditText
-            input_field.setVisibility(View.VISIBLE);
+            /*input_field.setVisibility(View.VISIBLE);
             input_field.setText(formatted_input);
             output_field.setVisibility(View.VISIBLE);
-            output_field.setText(formatted_output);
+            output_field.setText(formatted_output);*/
 
-            // Bring the input_field to front (for now, only allow editing of words, not IPAs)
-            input_field.bringToFront();
+            current_formatted_input = formatted_input;
+            current_formatted_output = formatted_output;
+            setText();
 
         }
         else {
             output_field.setText("");
         }
     }
+
+    public void setText (){
+        if (!current_formatted_input.isEmpty() && !current_formatted_output.isEmpty() ){
+            EditText input_field = (EditText) findViewById(R.id.input_field);
+            EditText output_field = (EditText) findViewById(R.id.output_field2);
+
+            // Put formatted input output into EditText
+            input_field.setVisibility(View.VISIBLE);
+            input_field.setText(current_formatted_input);
+            output_field.setVisibility(View.VISIBLE);
+            output_field.setText(current_formatted_output);
+
+            // Bring the input_field to front (for now, only allow editing of words, not IPAs)
+            input_field.bringToFront();
+
+        }
+
+    }
+
     public void onClickClear(View v) {
         TextView in = (TextView) findViewById(R.id.input_field);
         TextView out = (TextView) findViewById(R.id.output_field2);

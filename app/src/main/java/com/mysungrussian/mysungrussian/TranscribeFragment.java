@@ -5,12 +5,15 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 
 /**
@@ -68,7 +71,10 @@ public class TranscribeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_transcribe, container, false);
+        View v =  inflater.inflate(R.layout.fragment_transcribe, container, false);
+
+
+        return v;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -87,6 +93,16 @@ public class TranscribeFragment extends Fragment {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        //Set current input output
+        ((MainActivity)getActivity()).setText();
+        Log.d("Che", "Shud have set text now");
+
     }
 
     @Override
