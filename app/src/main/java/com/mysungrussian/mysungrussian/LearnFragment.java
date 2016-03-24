@@ -13,17 +13,12 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Environment;
 import android.util.Log;
-import android.view.FrameStats;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.media.MediaRecorder;
-import android.media.MediaPlayer;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.view.ViewGroup.LayoutParams;
 
 import java.io.BufferedInputStream;
@@ -33,16 +28,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.musicg.wave.Wave;
 import com.musicg.wave.WaveHeader;
 import com.musicg.wave.extension.Spectrogram;
@@ -74,7 +62,7 @@ public class LearnFragment extends Fragment {
     private AudioRecord recorder = null;
     private Thread recordingThread = null;
     private boolean isRecording = false;
-    public static int delayTime = 1000;
+    public static int recordLength = 1500;      //1.5 sec
 
     int BufferElements2Rec = 1024; // will be reassigned later
     int BytesPerElement = 2; // 2 bytes in 16bit format
@@ -221,7 +209,7 @@ public class LearnFragment extends Fragment {
                 //btn_play.setAlpha(1.0f);
                 //onPlay(false);
             }
-        }, delayTime);
+        }, recordLength);
 
     }
 
@@ -250,7 +238,7 @@ public class LearnFragment extends Fragment {
                 mySpectrogram();
 
             }
-        }, delayTime);
+        }, recordLength);
 
         Boolean b = SpeechRecognizer.isRecognitionAvailable(getActivity());
         Log.d("Che", "Speech recognize available? " + b.toString());
@@ -283,49 +271,12 @@ public class LearnFragment extends Fragment {
 
     // Audio processing with musicg
     private void mySpectrogram (){
-
-        // Get the wave from the audio file...
-        Wave wave = new Wave(mFileName);
-        byte[] b = wave.getBytes();
-        Log.d("Che", mFileName);
-        Log.d("Che", "the data length is "+b.length);
-
-        // Get spectrogram
+        // Should already have wave data
+        // Get spectrogram data
         Spectrogram spectrogram = wave.getSpectrogram();
-
         double [][] data = spectrogram.getNormalizedSpectrogramData();
+        System.out.print(Arrays.deepToString(data));
 
-        /*Log.d("Che", "The data length is: "+data.length);
-        ArrayList<Entry> entries = new ArrayList<Entry>() ;
-        for (int i=0; i<data.length; i++){
-            float sum = 0;
-            for (int j=0; j<data[0].length; j++){
-                sum += data[i][j];
-            }
-            entries.add(new Entry(sum, i));
-        }
-        //Log.d("Che", "The data rowSum is: "+Arrays.toString(rowSum));
-        // Plot this thing, following https://github.com/PhilJay/MPAndroidChart/wiki/Setting-Data
-        // in this example, a LineChart is initialized from xml
-        mLineChart = (LineChart) getActivity().findViewById(R.id.chart);
-        if (mLineChart==null){
-            Log.d("Che", "Whats your problem?");
-        }
-
-        // Render the spectrogram 1
-        LineDataSet setData = new LineDataSet(entries, "Cherry~~~~");
-        setData.setAxisDependency(YAxis.AxisDependency.LEFT);
-        ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
-        dataSets.add(setData);
-        ArrayList<String> xVals = new ArrayList<String>();
-        for (int i = 0; i<data.length; i++){
-            xVals.add(Integer.toString(i));
-        }
-        LineData lineData = new LineData(xVals, dataSets);
-        mLineChart.setData(lineData);
-        mLineChart.invalidate(); // refresh*/
-
-        // Render the spectrogram 2
         Log.d("Che", "Rendering spectrogram using SpectrogramView");
         SpectrogramView mView = new SpectrogramView(getActivity(), data);
         FrameLayout mLayout = (FrameLayout) getActivity().findViewById(R.id.mySpectrumFrame);
