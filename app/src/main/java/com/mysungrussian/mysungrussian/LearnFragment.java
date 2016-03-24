@@ -3,6 +3,7 @@ package com.mysungrussian.mysungrussian;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.media.AudioFormat;
 import android.media.AudioManager;
@@ -29,6 +30,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.List;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.musicg.wave.Wave;
@@ -273,9 +275,13 @@ public class LearnFragment extends Fragment {
     private void mySpectrogram (){
         // Should already have wave data
 
-        // Get spectrogram data
+        // Get absolute spectrogram data
         Spectrogram spectrogram = new Spectrogram(wave, 1024, 0);
         double [][] data = spectrogram.getNormalizedSpectrogramData();
+
+        // Normalize the data
+
+
         System.out.print(Arrays.deepToString(data));
 
         Log.d("Che", "Rendering spectrogram using SpectrogramView");
@@ -302,15 +308,23 @@ public class LearnFragment extends Fragment {
 
                 int[] arrayCol = new int[width*height];
                 int counter = 0;
+                double sum = 0;
                 for(int i = 0; i < height; i++) {
                     for(int j = 0; j < width; j++) {
                         int value;
                         int color;
 
-                        value = (int) data[j][i];
-                        //value = 255 - (int) (data[j][i] * 255);
+                        float hsv[] = new float[3];
+                        hsv[0] = (float) data[j][i] * 360;
+                        hsv[1] = (float) 1.0;
+                        hsv[2] = (float) 0.5;
 
-                        color = (value << 16 | value << 8 | value | 255 << 24);
+                        //value = 255 - (int) (data[j][i] * 255);
+                        //color = (value << 16 | value << 8 | value | 255 << 24);
+
+                        color = Color.HSVToColor(hsv);
+                        //Log.d("!!!", "data="+data[j][i]+" hsv[0]="+hsv[0]+" color="+color);
+
                         arrayCol[counter] = color;
                         counter ++;
                     }
@@ -318,7 +332,7 @@ public class LearnFragment extends Fragment {
 
                 //Calling createBitmap(int[] colors, int width, int height, Bitmap.Config config)
                 bmp = Bitmap.createBitmap(arrayCol, width, height, Bitmap.Config.ARGB_8888);
-                //bmp = Bitmap.createScaledBitmap(bmp, 270, 512, false);
+                bmp = Bitmap.createScaledBitmap(bmp, 180, 180, false);
                 Log.d("Che", "width "+width+", height "+height);
 
             } else {
@@ -360,7 +374,8 @@ public class LearnFragment extends Fragment {
                 }
 
                 //Calling createBitmap(int[] colors, int width, int height, Bitmap.Config config)
-                bmp = Bitmap.createBitmap(arrayCol, width, height, Bitmap.Config.ARGB_8888);
+                //宽和高反过来
+                bmp = Bitmap.createBitmap(arrayCol, height, width, Bitmap.Config.ARGB_8888);
             }
             else{
                 System.err.println("renderSpectrogramData error: Empty Wave");
