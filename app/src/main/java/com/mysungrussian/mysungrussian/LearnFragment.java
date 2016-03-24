@@ -272,8 +272,9 @@ public class LearnFragment extends Fragment {
     // Audio processing with musicg
     private void mySpectrogram (){
         // Should already have wave data
+
         // Get spectrogram data
-        Spectrogram spectrogram = wave.getSpectrogram();
+        Spectrogram spectrogram = new Spectrogram(wave, 1024, 0);
         double [][] data = spectrogram.getNormalizedSpectrogramData();
         System.out.print(Arrays.deepToString(data));
 
@@ -305,8 +306,11 @@ public class LearnFragment extends Fragment {
                     for(int j = 0; j < width; j++) {
                         int value;
                         int color;
-                        value = 255 - (int)(data[j][i] * 255);
-                        color = (value<<16|value<<8|value|255<<24);
+
+                        value = (int) data[j][i];
+                        //value = 255 - (int) (data[j][i] * 255);
+
+                        color = (value << 16 | value << 8 | value | 255 << 24);
                         arrayCol[counter] = color;
                         counter ++;
                     }
@@ -320,6 +324,48 @@ public class LearnFragment extends Fragment {
             } else {
                 System.err.println("Data Corrupt");
             }
+
+            /*int xMarker = -1;
+            int yMarker = -1;
+
+            if (spectrogramData!=null){
+                int width=spectrogramData.length;
+                int height=spectrogramData[0].length;
+
+                //BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+                int[] arrayCol = new int[width*height];
+                int counter = 0;
+
+                for (int i=0; i<width; i++){
+                    if (i==xMarker){
+                        for (int j=0; j<height; j++){
+                            //bufferedImage.setRGB(i, j, 0xFF00);	// green
+                        }
+                    }
+                    else{
+                        for (int j=0; j<height; j++){
+                            int value;
+                            if (j==yMarker){
+                                value=0xFF0000;	// red
+                            }
+                            else{
+                                value=255-(int)(spectrogramData[i][j]*255);
+                            }
+                            //bufferedImage.setRGB(i, height-1-j, value<<16|value<<8|value);
+                            int color = (value<<16|value<<8|value|255<<24);
+                            arrayCol[counter] = color;
+                            counter ++;
+                        }
+                    }
+                }
+
+                //Calling createBitmap(int[] colors, int width, int height, Bitmap.Config config)
+                bmp = Bitmap.createBitmap(arrayCol, width, height, Bitmap.Config.ARGB_8888);
+            }
+            else{
+                System.err.println("renderSpectrogramData error: Empty Wave");
+            }*/
+
         }
 
         @Override
