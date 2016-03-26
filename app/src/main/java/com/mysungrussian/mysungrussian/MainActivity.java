@@ -1,33 +1,34 @@
 package com.mysungrussian.mysungrussian;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.TextView;
 
-import java.util.List;
-import java.util.StringTokenizer;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 
-public class MainActivity extends AppCompatActivity
-        implements TranscribeFragment.OnFragmentInteractionListener, SavedFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity {
     TranscribeFragment transFrag;
     SavedFragment savedFrag;
+    String filename = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         transFrag = new TranscribeFragment();
         savedFrag = new SavedFragment();
@@ -96,6 +97,10 @@ public class MainActivity extends AppCompatActivity
                 //Just put the same empty fragment here
                 fragmentTransaction.replace(R.id.fragment_container, savedFrag);
                 fragmentTransaction.commit();
+                break;
+            case R.id.imageButton_save_trans:
+                Log.d("myTag", "save button clicked");
+                showInputDialog();
                 break;
         }
     }
@@ -223,4 +228,52 @@ public class MainActivity extends AppCompatActivity
     public void onFragmentInteraction(Uri uri){
 
     }
+
+    protected void showInputDialog(){
+        EditText inputFile = (EditText)findViewById(R.id.input_field);
+        final String input_Field = inputFile.getText().toString();
+
+        LayoutInflater layoutInflater = LayoutInflater.from(MainActivity.this);
+        View promptView = layoutInflater.inflate(R.layout.save_trans_pop, null);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+        alertDialogBuilder.setView(promptView);
+        final EditText file_name = (EditText) promptView.findViewById(R.id.enter_file_name);
+        alertDialogBuilder.setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        filename = file_name.getText().toString()+ ".txt";
+                        Log.d("myTag", file_name.getText().toString());
+                        writeFile(filename, input_Field);
+                        filename = "";
+                    }
+                })
+                .setNegativeButton("Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+
+        // create an alert dialog
+        AlertDialog alert = alertDialogBuilder.create();
+        alert.show();
+
+
+    }
+
+    public void writeFile(String filename, String input_Field){
+        try {
+            Log.d("myTag", "writefile is called");
+            FileOutputStream fos = openFileOutput(filename, Context.MODE_PRIVATE);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fos);
+            outputStreamWriter.write(input_Field);
+            Log.d("myTag", input_Field + " is saved into " + filename);
+            outputStreamWriter.close();
+            fos.close();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+
 }

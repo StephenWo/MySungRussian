@@ -1,16 +1,12 @@
 package com.mysungrussian.mysungrussian;
 
-import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
 
 
 /**
@@ -69,6 +65,7 @@ public class TranscribeFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_transcribe, container, false);
+
     }
 
     // TODO: Rename method, update argument and hook method into UI event
