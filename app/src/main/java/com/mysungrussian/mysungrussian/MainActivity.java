@@ -6,6 +6,8 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
@@ -80,6 +82,19 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        myColorTint();
+
+    }
+
+    private void myColorTint() {
+        int tint = Color.parseColor("#b1b1b1"); //grey
+        PorterDuff.Mode mode = PorterDuff.Mode.SRC_ATOP;
+        // add your drawable resources you wish to tint to the drawables array...
+        int drawables[] = { R.drawable.ic_clear_black_24dp};
+        for (int id : drawables) {
+            Drawable icon = getResources().getDrawable(id);
+            icon.setColorFilter(tint,mode);
+        }
     }
 
     // Method to hide keyboard
@@ -219,6 +234,7 @@ public class MainActivity extends AppCompatActivity
                 String[] output_words = output_ipas.split(" ");
 
 
+                // Put word-pairs in one by one?
                 for (int i = 0; i<input_words.length; i++) {
                     String temp_in = input_words[i];
                     String temp_out = output_words[i];
