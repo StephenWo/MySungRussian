@@ -100,7 +100,7 @@
             android:src="@drawable/technology"
             android:contentDescription="@string/save_file"
             android:background="#ffffff"
-            android:onClick="tabBtnOnClick"
+            android:onClick="onClickSave"
             android:layout_alignBottom="@+id/btn"
             android:layout_alignEnd="@+id/frameLayout" />
 
