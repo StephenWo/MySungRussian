@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -37,8 +38,9 @@ public class MainActivity extends AppCompatActivity
         implements TranscribeFragment.OnFragmentInteractionListener, LearnFragment.OnFragmentInteractionListener {
     TranscribeFragment transFrag;
     SavedFragment savedFrag;
-    String filename = "";
     LearnFragment learnFrag;
+
+    final String filename = null;
 
     String current_formatted_input = "";
     String current_formatted_output = "";
@@ -114,7 +116,7 @@ public class MainActivity extends AppCompatActivity
             view.setOnTouchListener(new View.OnTouchListener() {
 
                 public boolean onTouch(View v, MotionEvent event) {
-                    if(getCurrentFocus() != null) {
+                    if (getCurrentFocus() != null) {
                         hideSoftKeyboard(MainActivity.this);
                         getCurrentFocus().clearFocus();
                     }
@@ -380,10 +382,15 @@ public class MainActivity extends AppCompatActivity
         alertDialogBuilder.setCancelable(false)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        filename = file_name.getText().toString()+ ".txt";
-                        Log.d("myTag", file_name.getText().toString());
-                        writeFile(filename, input_Field, output_Field);
-                        filename = "";
+                        String tmp = file_name.getText().toString();
+                        if(TextUtils.isEmpty(tmp)){
+                            Toast.makeText(getApplicationContext(), "File is not saved with empty file name",
+                                    Toast.LENGTH_LONG).show();
+                        }else{
+                            writeFile(file_name.getText().toString() + ".txt", input_Field,output_Field);
+                            Toast.makeText(getApplicationContext(), "File is saved",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                     }
                 })
                 .setNegativeButton("Cancel",
@@ -397,10 +404,9 @@ public class MainActivity extends AppCompatActivity
         AlertDialog alert = alertDialogBuilder.create();
         alert.show();
 
-
     }
 
-    public void writeFile(String filename, String input_Field, String output_Field){
+    protected void writeFile(String filename, String input_Field, String output_Field){
         try {
             Log.d("myTag", "writefile is called");
             FileOutputStream fos = openFileOutput(filename, Context.MODE_PRIVATE);
