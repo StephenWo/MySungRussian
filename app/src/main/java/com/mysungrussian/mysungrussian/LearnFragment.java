@@ -64,7 +64,7 @@ public class LearnFragment extends Fragment {
     private AudioRecord recorder = null;
     private Thread recordingThread = null;
     private boolean isRecording = false;
-    public static int recordLength = 1500;      //1.5 sec
+    public static int recordLength = 2000;      //1.5 sec
 
     int BufferElements2Rec = 1024; // will be reassigned later
     int BytesPerElement = 2; // 2 bytes in 16bit format
@@ -274,18 +274,87 @@ public class LearnFragment extends Fragment {
     // Audio processing with musicg
     private void mySpectrogram (){
         // Should already have wave data
+        // Some parameters
+        int chunkSize = 2048;  //must be power of two
+        double minAmpLimit = 100;
+        int deleteTail = 2;
 
         // Get absolute spectrogram data
-        Spectrogram spectrogram = new Spectrogram(wave, 1024, 0);
-        double [][] data = spectrogram.getNormalizedSpectrogramData();
+        Spectrogram spectrogram = new Spectrogram(wave, chunkSize, 0);
+        //double [][] data = spectrogram.getNormalizedSpectrogramData();
+        double [][] data = spectrogram.getAbsoluteSpectrogramData();
+        data = Arrays.copyOfRange(data, 0, data.length-deleteTail);
+        double [][] data2 = spectrogram.getNormalizedSpectrogramData();
+        data2 = Arrays.copyOfRange(data2, 0, data2.length-deleteTail);
+
+
+        Log.d("Che", "data[0].length: "+data[0].length);
 
         // Normalize the data
+        for (int i = 0; i<data.length-deleteTail; i++){
+            double [] d = Arrays.copyOfRange(data[i], 0, data[0].length);
+            Log.d("???????", ""+Arrays.toString(d));
+            double [] dd = Arrays.copyOfRange(data2[i], 0, data[0].length);
+            Log.d("!!!!!!!", ""+Arrays.toString(dd));
+
+        }
+
+        double x = spectrogram.getUnitFrequency();
+        Log.d("Che", "unit frequency is "+x);
+
+        // normalization of absoultSpectrogram
+        int numFrames = spectrogram.getNumFrames()-deleteTail;
+        int numFrequencyUnit = spectrogram.getNumFrequencyUnit();
 
 
-        System.out.print(Arrays.deepToString(data));
+        // normalization of absoultSpectrogram
+        double [][] data3 =new double[numFrames][numFrequencyUnit];
+
+        // set max and min amplitudes
+        double maxAmp=Double.MIN_VALUE;
+        double minAmp=Double.MAX_VALUE;
+        for (int i=0; i<numFrames; i++){
+            for (int j=0; j<numFrequencyUnit; j++){
+                if (data[i][j]>maxAmp){
+                    maxAmp=data[i][j];
+                }
+                else if(data[i][j]<minAmp){
+                    // Want to avoid too small amp, clip it
+                    if (data[i][j]<minAmpLimit && false){
+                        minAmp = minAmpLimit;
+                    }else {
+                        minAmp = data[i][j];
+                    }
+                }
+            }
+        }
+        // end set max and min amplitudes
+        Log.d("Che", "min is "+minAmp+", max is "+maxAmp);//+" at ("+max_i+","+max_j+")");
+
+
+        // normalization
+        // avoiding divided by zero
+        double minValidAmp=0.00000000001F;
+        if (minAmp==0){
+            minAmp=minValidAmp;
+        }
+
+        double diff=Math.log10(maxAmp/minAmp);	// perceptual difference
+        for (int i=0; i<numFrames; i++){
+            for (int j=0; j<numFrequencyUnit; j++){
+                if (data[i][j]<minValidAmp){
+                    data3[i][j]=0;
+                }
+                else{
+                    data3[i][j]=(Math.log10(data[i][j]/minAmp))/diff;
+                }
+            }
+        }
+        // end normalization
+
 
         Log.d("Che", "Rendering spectrogram using SpectrogramView");
-        SpectrogramView mView = new SpectrogramView(getActivity(), data);
+        SpectrogramView mView = new SpectrogramView(getActivity(), data3);
         FrameLayout mLayout = (FrameLayout) getActivity().findViewById(R.id.mySpectrumFrame);
         mLayout.removeAllViews();
         FrameLayout.LayoutParams lop = new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
@@ -304,20 +373,19 @@ public class LearnFragment extends Fragment {
             if (data != null) {
                 paint.setStrokeWidth(1);
                 int width = data.length;
-                int height = data[0].length;
+                int height = data[0].length;    // Higher part of the frequency is always empty, so discard.
 
                 int[] arrayCol = new int[width*height];
                 int counter = 0;
-                double sum = 0;
-                for(int i = 0; i < height; i++) {
+                for(int i = height-1; i >=0 ; i--) { //0 is top, want to start from bottom
                     for(int j = 0; j < width; j++) {
                         int value;
                         int color;
 
                         float hsv[] = new float[3];
-                        hsv[0] = (float) data[j][i] * 360;
-                        hsv[1] = (float) 1.0;
-                        hsv[2] = (float) 0.5;
+                        hsv[0] = (float)(1 - data[j][i]*data[j][i]) * 300;
+                        hsv[1] = (float) 1.0;   //saturation
+                        hsv[2] = (float) 0.5;   //value (brightness)
 
                         //value = 255 - (int) (data[j][i] * 255);
                         //color = (value << 16 | value << 8 | value | 255 << 24);
