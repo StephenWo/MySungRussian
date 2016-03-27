@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
+        android:padding="5dp"
         >
 
         <FrameLayout
@@ -20,8 +21,8 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentBottom="true"
             android:layout_gravity="center_horizontal|top"
-            android:layout_margin="10dp"
-            android:background="#ffffff"
+            android:layout_marginBottom="50dp"
+            android:background="@drawable/layout_boarder"
             android:id="@+id/frameLayout"
             android:focusableInTouchMode="true">
 
@@ -47,12 +48,12 @@
                         android:layout_gravity="left|top"
                         android:gravity="top|left"
                         android:text="Здравствуйте"
-                        android:background="@android:color/transparent"
                         android:focusable="true"
                         android:focusableInTouchMode="true"
                         android:inputType="textMultiLine|textNoSuggestions"
                         android:lineSpacingExtra="30dp"
                         android:textCursorDrawable="@drawable/cursor"
+                        android:background="@android:color/transparent"
                         android:textSize="20sp"
                         />
 
@@ -86,6 +87,7 @@
                 android:layout_alignStart="@+id/frameLayout"
                 android:layout_marginStart="63dp"
                 android:layout_margin="7dp"
+                android:padding="10dp"
                 android:clickable="true" />
 
         </FrameLayout>
