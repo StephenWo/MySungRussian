@@ -164,11 +164,6 @@ public class MainActivity extends AppCompatActivity
                 fragmentTransaction.addToBackStack("savedFrag_backTag");
                 fragmentTransaction.commit();
                 return true;
-            
-            case R.id.imageButton_save_trans:
-                showInputDialog();
-                break;
-                return true;
 
             default:
                 // If we got here, the user's action was not recognized.
@@ -186,6 +181,7 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    // Buttons in TranscribeFragment
     public void onClickTranscribe (View v){
         //hideSoftKeyboard();
         // Check if no view has focus:
@@ -294,9 +290,6 @@ public class MainActivity extends AppCompatActivity
                     // Always append words onto formatted strings
                     formatted_input += temp_in;
                     formatted_output += temp_out;
-
-                    //formatted_input = formatted_input.substring(0,formatted_input.length()-2) + ". ";
-                    //formatted_output = formatted_output.substring(0,formatted_input.length()-2) + ". ";
                 }
             }
 
@@ -354,6 +347,11 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    public void onClickSave (View v){
+        showInputDialog();
+    }
+
+    // Buttons in LearnFragment
     public void onClickRecord(View v) {
         learnFrag.onClickRecord(v);
     }
