@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 
-public class loadFile_frag extends Fragment {
+public class loadFile_frag extends Fragment{
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -19,4 +19,6 @@ public class loadFile_frag extends Fragment {
         output_field.setText(SavedFragment.file_content);
         return view;
     }
+
+
 }

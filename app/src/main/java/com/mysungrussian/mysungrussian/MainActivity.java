@@ -91,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.btn_saved:
                 fragmentTransaction.replace(R.id.fragment_container, savedFrag);
+                fragmentTransaction.addToBackStack("savedFrag_backTag");
                 fragmentTransaction.commit();
                 break;
             case R.id.btn_learn:
@@ -99,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
                 fragmentTransaction.commit();
                 break;
             case R.id.imageButton_save_trans:
-                Log.d("myTag", "save button clicked");
                 showInputDialog();
                 break;
         }
@@ -233,6 +233,9 @@ public class MainActivity extends AppCompatActivity {
         EditText inputFile = (EditText)findViewById(R.id.input_field);
         final String input_Field = inputFile.getText().toString();
 
+        EditText outputFile = (EditText)findViewById(R.id.output_field2);
+        final String output_Field = outputFile.getText().toString();
+
         LayoutInflater layoutInflater = LayoutInflater.from(MainActivity.this);
         View promptView = layoutInflater.inflate(R.layout.save_trans_pop, null);
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
@@ -243,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int id) {
                         filename = file_name.getText().toString()+ ".txt";
                         Log.d("myTag", file_name.getText().toString());
-                        writeFile(filename, input_Field);
+                        writeFile(filename, input_Field, output_Field);
                         filename = "";
                     }
                 })
@@ -261,11 +264,14 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void writeFile(String filename, String input_Field){
+    public void writeFile(String filename, String input_Field, String output_Field){
         try {
             Log.d("myTag", "writefile is called");
             FileOutputStream fos = openFileOutput(filename, Context.MODE_PRIVATE);
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fos);
+            outputStreamWriter.write(output_Field);
+
+            Log.d("myTag", output_Field + " is saved into " + filename);
             outputStreamWriter.write(input_Field);
             Log.d("myTag", input_Field + " is saved into " + filename);
             outputStreamWriter.close();

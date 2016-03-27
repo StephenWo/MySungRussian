@@ -40,10 +40,9 @@ public class SavedFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                file_content = "";
                 String tag = ((TextView)view).getText().toString();
-                Log.d("myTag", "here is my tag" + tag);
                 String dir = getActivity().getBaseContext().getFilesDir().getAbsolutePath();
-                Log.d("myTag", "my path is " + dir);
                 try {
                     FileInputStream fin = getActivity().getBaseContext().openFileInput(tag);
                     InputStreamReader inputStreamReader = new InputStreamReader(fin);
@@ -62,11 +61,16 @@ public class SavedFragment extends Fragment {
                 loadFile_frag loadFileFrag  = new loadFile_frag();
                 fragmentTransaction.replace(R.id.fragment_container, loadFileFrag);
                 fragmentTransaction.commit();
-                file_content = "";
             }
         });
 
         return result;
     }
+
+    public void onBackPressed() {
+        FragmentManager fm = getActivity().getFragmentManager();
+        fm.popBackStack();
+    }
+
 
 }
