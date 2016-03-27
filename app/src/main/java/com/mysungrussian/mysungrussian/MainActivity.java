@@ -84,15 +84,18 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        // Change image buttons drawables to grey
         myColorTint();
 
     }
 
-    private void myColorTint() {
+    // Method for changing all the image buttons to grey, the change is done to drawables directly!
+    public void myColorTint() {
         int tint = Color.parseColor("#b1b1b1"); //grey
         PorterDuff.Mode mode = PorterDuff.Mode.SRC_ATOP;
         // add your drawable resources you wish to tint to the drawables array...
-        int drawables[] = { R.drawable.ic_clear_black_24dp};
+        int drawables[] = { R.drawable.ic_clear_black_24dp, R.drawable.technology, R.drawable.ic_keyboard_arrow_up_white_24dp,
+                            R.drawable.ic_keyboard_arrow_down_white_24dp, R.drawable.ic_content_copy_white_24dp};
         for (int id : drawables) {
             Drawable icon = getResources().getDrawable(id);
             icon.setColorFilter(tint,mode);
@@ -107,7 +110,6 @@ public class MainActivity extends AppCompatActivity
 
     // Method for hiding soft keyboard
     public void setupUI(View view) {
-
         //Set up touch listener for non-text box views to hide keyboard.
         if(!(view instanceof EditText)) {
 
@@ -123,14 +125,10 @@ public class MainActivity extends AppCompatActivity
 
             });
         }
-
         //If a layout container, iterate over children and seed recursion.
         if (view instanceof ViewGroup) {
-
             for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
-
                 View innerView = ((ViewGroup) view).getChildAt(i);
-
                 setupUI(innerView);
             }
         }
@@ -328,7 +326,7 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    public void onClickClear(View v) {
+    public void clearText(View v) {
         Log.d("Che", "onClickClear");
 
         current_formatted_input = "";
@@ -344,20 +342,29 @@ public class MainActivity extends AppCompatActivity
         output_field.setText(current_formatted_output);
 
         input_field.bringToFront();
-
     }
 
-    public void onClickSave (View v){
-        showInputDialog();
-    }
-
-    // Buttons in LearnFragment
-    public void onClickRecord(View v) {
-        learnFrag.onClickRecord(v);
-    }
-
-    public void onClickPlay(View v) {
-        learnFrag.onClickPlay(v);
+    public void buttonOnClick (View v){
+        switch (v.getId()) {
+            case R.id.btn:
+                onClickTranscribe(v);
+                onClickTranscribe(v);   //Somehow calling this twice sets the format correctly.. (:3...
+                break;
+            case R.id.btn_clear:
+                clearText(v);
+                break;
+            case R.id.imageButton_save_trans:
+                showInputDialog();
+                break;
+            case R.id.btn_record:
+                learnFrag.onClickRecord(v);
+                break;
+            case R.id.btn_play:
+                learnFrag.onClickPlay(v);
+                break;
+            default:
+                return;
+        }
     }
 
 

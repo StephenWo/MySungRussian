@@ -69,8 +69,15 @@ public class TranscribeFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d("Che", "onCreateView transcribe fragment");
+
+        //Set buttons tint again...
+        ((MainActivity)getActivity()).myColorTint();
+
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_transcribe, container, false);
+
+        View v = inflater.inflate(R.layout.fragment_transcribe, container, false);
+        return v;
 
     }
 
@@ -83,6 +90,7 @@ public class TranscribeFragment extends Fragment {
 
     @Override
     public void onAttach(Context context) {
+        Log.d("Che", "attaching transcribe fragment");
         super.onAttach(context);
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
@@ -94,10 +102,13 @@ public class TranscribeFragment extends Fragment {
 
     @Override
     public void onResume() {
+        Log.d("Che", "resuming transcribe fragment");
+
         super.onResume();
 
-        //Set current input output
+        //Set current input output...
         ((MainActivity)getActivity()).mySetText();
+
         Log.d("Che", "Shud have set text now");
 
     }
