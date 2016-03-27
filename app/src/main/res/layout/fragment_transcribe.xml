@@ -63,6 +63,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="left|top"
                         android:gravity="top|left"
+                        android:text="zdrɑ.vzdvuj.tʲɛ"
                         android:background="@android:color/transparent"
                         android:clickable="false"
                         android:inputType="textMultiLine|textNoSuggestions"
@@ -91,6 +92,17 @@
                 android:clickable="true" />
 
         </FrameLayout>
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageButton_save_trans"
+            android:src="@drawable/technology"
+            android:contentDescription="@string/save_file"
+            android:background="#ffffff"
+            android:onClick="tabBtnOnClick"
+            android:layout_alignBottom="@+id/btn"
+            android:layout_alignEnd="@+id/frameLayout" />
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/btn"

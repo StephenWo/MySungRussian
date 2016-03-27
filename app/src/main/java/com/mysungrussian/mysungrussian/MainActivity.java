@@ -2,9 +2,11 @@ package com.mysungrussian.mysungrussian;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -12,8 +14,10 @@ import android.net.Uri;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -26,22 +30,20 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.List;
-import java.util.StringTokenizer;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 
 public class MainActivity extends AppCompatActivity
-        implements TranscribeFragment.OnFragmentInteractionListener,
-        SavedFragment.OnFragmentInteractionListener, LearnFragment.OnFragmentInteractionListener {
+        implements TranscribeFragment.OnFragmentInteractionListener, LearnFragment.OnFragmentInteractionListener {
     TranscribeFragment transFrag;
     SavedFragment savedFrag;
+    String filename = "";
     LearnFragment learnFrag;
 
     String current_formatted_input = "";
     String current_formatted_output = "";
 
-
-    private String[] tabs = { "Top Rated", "Games", "Movies" };
-
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -159,8 +161,13 @@ public class MainActivity extends AppCompatActivity
                 // as a favorite...
                 Log.d("Che", "in action_files, change fragment");
                 fragmentTransaction.replace(R.id.fragment_container, savedFrag);
+                fragmentTransaction.addToBackStack("savedFrag_backTag");
                 fragmentTransaction.commit();
-
+                return true;
+            
+            case R.id.imageButton_save_trans:
+                showInputDialog();
+                break;
                 return true;
 
             default:
@@ -227,6 +234,7 @@ public class MainActivity extends AppCompatActivity
                 Log.d("Che", "transcribing sentence "+input_sentence);
 
                 String output_ipas = RuleEngine.Transcribe(input_sentence);
+                output_ipas = output_ipas.substring(1);
                 Log.d("Che", "transcribed sentence #" + counter + ", the ipa is:" + output_ipas);
 
                 // Tokenize the input and output string with space token
@@ -358,4 +366,58 @@ public class MainActivity extends AppCompatActivity
     public void onFragmentInteraction(Uri uri){
 
     }
+
+    protected void showInputDialog(){
+        EditText inputFile = (EditText)findViewById(R.id.input_field);
+        final String input_Field = inputFile.getText().toString();
+
+        EditText outputFile = (EditText)findViewById(R.id.output_field2);
+        final String output_Field = outputFile.getText().toString();
+
+        LayoutInflater layoutInflater = LayoutInflater.from(MainActivity.this);
+        View promptView = layoutInflater.inflate(R.layout.save_trans_pop, null);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+        alertDialogBuilder.setView(promptView);
+        final EditText file_name = (EditText) promptView.findViewById(R.id.enter_file_name);
+        alertDialogBuilder.setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        filename = file_name.getText().toString()+ ".txt";
+                        Log.d("myTag", file_name.getText().toString());
+                        writeFile(filename, input_Field, output_Field);
+                        filename = "";
+                    }
+                })
+                .setNegativeButton("Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+
+        // create an alert dialog
+        AlertDialog alert = alertDialogBuilder.create();
+        alert.show();
+
+
+    }
+
+    public void writeFile(String filename, String input_Field, String output_Field){
+        try {
+            Log.d("myTag", "writefile is called");
+            FileOutputStream fos = openFileOutput(filename, Context.MODE_PRIVATE);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fos);
+            outputStreamWriter.write(output_Field);
+
+            Log.d("myTag", output_Field + " is saved into " + filename);
+            outputStreamWriter.write(input_Field);
+            Log.d("myTag", input_Field + " is saved into " + filename);
+            outputStreamWriter.close();
+            fos.close();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+
 }

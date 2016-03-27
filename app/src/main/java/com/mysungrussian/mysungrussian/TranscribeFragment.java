@@ -1,13 +1,12 @@
 package com.mysungrussian.mysungrussian;
 
-import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -71,9 +70,8 @@ public class TranscribeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v =  inflater.inflate(R.layout.fragment_transcribe, container, false);
+        return inflater.inflate(R.layout.fragment_transcribe, container, false);
 
-        return v;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
