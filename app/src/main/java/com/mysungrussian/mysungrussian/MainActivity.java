@@ -337,7 +337,8 @@ public class MainActivity extends AppCompatActivity
             EditText input_field = (EditText) findViewById(R.id.input_field);
             final EditText output_field = (EditText) findViewById(R.id.output_field2);
 
-            output_field.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
+            output_field.setCustomSelectionActionModeCallback(new ActionMode.Callback()
+            {
 
                 @Override
                 public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
@@ -383,8 +384,15 @@ public class MainActivity extends AppCompatActivity
                             }
                             // Perform edit with the selected text (TODO)
                             final CharSequence selectedText = output_field.getText().subSequence(min, max);
-                            Log.d("Che", "Selected text is: "+selectedText);
+                            String key = cleanExtraSpace( selectedText.toString() );
 
+                            if (key.length() == 1){
+                                String[] possible_ipa = (String[]) RuleEngine.cyrillicLib.get(key);
+                                Log.d("Che", "Selected text is: "+key + ", its possible ipa are: "+ possible_ipa);
+                            }else{
+                                Log.d("Che", "Selected text not a single char! "+key);
+                                //Do nothing
+                            }
                             // Finish and close the ActionMode
                             mode.finish();
                             return true;
