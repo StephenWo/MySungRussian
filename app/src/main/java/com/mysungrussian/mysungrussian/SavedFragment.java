@@ -20,7 +20,8 @@ import java.io.InputStreamReader;
 
 public class SavedFragment extends Fragment {
 
-    public static String file_content = "";
+    public static String file_ipa = "";
+    public static String file_word = "";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -40,7 +41,8 @@ public class SavedFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                file_content = "";
+                file_ipa = "";
+                file_word = "";
                 String tag = ((TextView)view).getText().toString();
                 String dir = getActivity().getBaseContext().getFilesDir().getAbsolutePath();
                 try {
@@ -49,17 +51,31 @@ public class SavedFragment extends Fragment {
                     BufferedReader br = new BufferedReader(inputStreamReader);
                     String line;
                     while ((line = br.readLine()) != null) {
-                        file_content +=line;
+                        file_ipa +=line;
+                        Log.d("myTag", "first line is " + line);
+                        if((line = br.readLine()) != null){
+                            file_word +=line;
+                            Log.d("myTag", "second line is " + line);
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
+
+
                 FragmentManager fragmentManager = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                loadFile_frag loadFileFrag  = new loadFile_frag();
-                fragmentTransaction.replace(R.id.fragment_container, loadFileFrag);
+
+                MainActivity ma = (MainActivity) getActivity();
+                ma.current_formatted_output = file_ipa;
+                Log.d("myTag","the ipa is " + ma.current_formatted_output);
+                ma.current_formatted_input = file_word;
+                Log.d("myTag", "the text is " + ma.current_formatted_input);
+
+                fragmentTransaction.replace(R.id.fragment_container, ma.transFrag);
                 fragmentTransaction.commit();
+
             }
         });
 

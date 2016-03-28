@@ -34,14 +34,14 @@ import java.io.OutputStreamWriter;
 
 public class MainActivity extends AppCompatActivity
         implements TranscribeFragment.OnFragmentInteractionListener, LearnFragment.OnFragmentInteractionListener {
-    TranscribeFragment transFrag;
+    public TranscribeFragment transFrag;
     SavedFragment savedFrag;
     LearnFragment learnFrag;
 
     final String filename = null;
 
-    String current_formatted_input = "";
-    String current_formatted_output = "";
+    public String current_formatted_input = "";
+    public String current_formatted_output = "";
 
     
     @Override
@@ -477,7 +477,7 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.imageButton_save_trans:
                 showInputDialog();
-                Toast.makeText(getApplicationContext(), "Saved.", Toast.LENGTH_SHORT).show();
+
                 break;
             case R.id.btn_copy:
                 String input_sentence = cleanExtraSpace(current_formatted_input);
@@ -531,11 +531,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     protected void showInputDialog(){
-        EditText inputFile = (EditText)findViewById(R.id.input_field);
-        final String input_Field = inputFile.getText().toString();
-
-        EditText outputFile = (EditText)findViewById(R.id.output_field2);
-        final String output_Field = outputFile.getText().toString();
+        final String input_Field = current_formatted_input;
+        final String output_Field = current_formatted_output;
 
         LayoutInflater layoutInflater = LayoutInflater.from(MainActivity.this);
         View promptView = layoutInflater.inflate(R.layout.save_trans_pop, null);
@@ -575,6 +572,9 @@ public class MainActivity extends AppCompatActivity
             FileOutputStream fos = openFileOutput(filename, Context.MODE_PRIVATE);
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fos);
             outputStreamWriter.write(output_Field);
+
+            //Separator for output and input
+            outputStreamWriter.write("\n");
 
             Log.d("myTag", output_Field + " is saved into " + filename);
             outputStreamWriter.write(input_Field);

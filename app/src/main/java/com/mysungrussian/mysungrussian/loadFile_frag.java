@@ -15,8 +15,8 @@ public class loadFile_frag extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_load_file_frag, container, false);
-        TextView output_field = (TextView)view.findViewById(R.id.open_file);
-        output_field.setText(SavedFragment.file_content);
+        //TextView output_field = (TextView)view.findViewById(R.id.open_file);
+        //output_field.setText(SavedFragment.file_content);
         return view;
     }
 
