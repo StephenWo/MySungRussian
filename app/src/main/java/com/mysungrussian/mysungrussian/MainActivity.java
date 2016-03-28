@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.ClipboardManager;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -114,7 +115,7 @@ public class MainActivity extends AppCompatActivity
             view.setOnTouchListener(new View.OnTouchListener() {
 
                 public boolean onTouch(View v, MotionEvent event) {
-                    if(getCurrentFocus() != null) {
+                    if (getCurrentFocus() != null) {
                         hideSoftKeyboard(MainActivity.this);
                         getCurrentFocus().clearFocus();
                     }
@@ -145,16 +146,12 @@ public class MainActivity extends AppCompatActivity
         switch (item.getItemId()) {
 
             case R.id.action_learn:
-                // User chose the "Favorite" action, mark the current item
-                // as a favorite...
                 Log.d("Che", "in action_learn, change fragment");
                 fragmentTransaction.replace(R.id.fragment_container, learnFrag);
                 fragmentTransaction.commit();
                 return true;
 
             case R.id.action_files:
-                // User chose the "Favorite" action, mark the current item
-                // as a favorite...
                 Log.d("Che", "in action_files, change fragment");
                 fragmentTransaction.replace(R.id.fragment_container, savedFrag);
                 fragmentTransaction.addToBackStack("savedFrag_backTag");
@@ -225,8 +222,7 @@ public class MainActivity extends AppCompatActivity
                     continue;
                 }
 
-                input_sentence = input_sentence.replaceAll("\n", "");   //Strip newlines
-                input_sentence = input_sentence.replaceAll(" +", " ");   //Strip spaces if >1 space
+                input_sentence = cleanExtraSpace(input_sentence);
                 Log.d("Che", "transcribing sentence "+input_sentence);
 
                 String output_ipas = RuleEngine.Transcribe(input_sentence);
@@ -316,6 +312,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    // Method for getting the text field width, used for padding spaces
     private int getWidth (EditText field, String str){
         field.setVisibility(View.VISIBLE);
         field.setText(str + ".");
@@ -324,6 +321,7 @@ public class MainActivity extends AppCompatActivity
         return width;
     }
 
+    // Method for getting the text field height (NOT WORKING, 没用！)
     private int getHeight (EditText field, String str){
         Log.d("Che", "getHeight, str is "+str);
         field.setVisibility(View.VISIBLE);
@@ -337,7 +335,66 @@ public class MainActivity extends AppCompatActivity
         Log.d("Che", "mySetText");
         if (!current_formatted_input.isEmpty()){
             EditText input_field = (EditText) findViewById(R.id.input_field);
-            EditText output_field = (EditText) findViewById(R.id.output_field2);
+            final EditText output_field = (EditText) findViewById(R.id.output_field2);
+
+            output_field.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
+
+                @Override
+                public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                    // Remove some options
+                    menu.removeItem(android.R.id.cut);
+                    menu.removeItem(android.R.id.paste);
+
+                    menu.add(0,1,0,"EDIT").setIcon(R.drawable.ic_mode_edit_white_24dp);
+
+                    return true;
+                }
+
+                @Override
+                public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                    // Called when action mode is first created. The menu supplied
+                    // will be used to generate action buttons for the action mode
+                    // Here is an example MenuItem
+                    //menu.add(0, DEFINITION, 0, "Definition").setIcon(R.drawable.ic_action_book);
+
+                    return true;
+                }
+
+                @Override
+                public void onDestroyActionMode(ActionMode mode) {
+                    // Called when an action mode is about to be exited and
+                    // destroyed
+                }
+
+                @Override
+                public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                    switch (item.getItemId()) {
+                        case 1:
+                            Log.d("Che", "item id 1");
+
+                            int min = 0;
+                            int max = output_field.getText().length();
+                            if (output_field.isFocused()) {
+                                final int selStart = output_field.getSelectionStart();
+                                final int selEnd = output_field.getSelectionEnd();
+
+                                min = Math.max(0, Math.min(selStart, selEnd));
+                                max = Math.max(0, Math.max(selStart, selEnd));
+                            }
+                            // Perform edit with the selected text (TODO)
+                            final CharSequence selectedText = output_field.getText().subSequence(min, max);
+                            Log.d("Che", "Selected text is: "+selectedText);
+
+                            // Finish and close the ActionMode
+                            mode.finish();
+                            return true;
+                        default:
+                            break;
+                    }
+                    return false;
+                }
+
+            });
 
             // Put formatted input output into EditText
             input_field.setVisibility(View.VISIBLE);
@@ -353,6 +410,7 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    // Method for adding focus to a field
     private void myFocusField (EditText field){
         field.bringToFront();
         field.setFocusable(true);
@@ -361,12 +419,14 @@ public class MainActivity extends AppCompatActivity
         field.requestFocus();
     }
 
-    private void myRemoveFocusField (EditText field){
+    // Method for removing focus for a field
+    private void myRemoveFocusField(EditText field){
         field.setFocusable(false);
         field.setFocusableInTouchMode(false);
     }
 
-    public void clearText(View v) {
+    // Method for clearing the input output fields
+    public void clearTextFields(View v) {
         Log.d("Che", "onClickClear");
 
         current_formatted_input = "";
@@ -385,6 +445,16 @@ public class MainActivity extends AppCompatActivity
         myRemoveFocusField(output_field);
     }
 
+    // Clean space paddings from the formatted strings, for copy and saving to file
+    private String cleanExtraSpace(String formatted_str){
+        String cleaned_str = formatted_str.replaceAll("\n", "");
+        cleaned_str = cleaned_str.replaceAll(" +", " ");
+
+        return cleaned_str;
+    }
+
+
+
     public void buttonOnClick (View v){
         switch (v.getId()) {
             case R.id.btn:
@@ -392,7 +462,7 @@ public class MainActivity extends AppCompatActivity
                 //onClickTranscribe(v);   //Somehow calling this twice sets the format correctly.. (:3...
                 break;
             case R.id.btn_clear:
-                clearText(v);
+                clearTextFields(v);
                 Toast.makeText(getApplicationContext(), "Cleared.", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.imageButton_save_trans:
@@ -400,17 +470,14 @@ public class MainActivity extends AppCompatActivity
                 Toast.makeText(getApplicationContext(), "Saved.", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.btn_copy:
-                String input_sentence = current_formatted_input.replaceAll("\n", "");   //Strip newlines
-                input_sentence = input_sentence.replaceAll(" +", " ");   //Strip spaces if >1 space
-
-                String output_sentence = current_formatted_output.replaceAll("\n", "");   //Strip newlines
-                output_sentence = output_sentence.replaceAll(" +", " ");   //Strip spaces if >1 space
+                String input_sentence = cleanExtraSpace(current_formatted_input);
+                String output_sentence = cleanExtraSpace(current_formatted_output);
 
                 // Get clipboard
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                 clipboard.setText(input_sentence + "\n" + output_sentence);
 
-                Toast.makeText(getApplicationContext(), "Copied both input and output to clipboard.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Text and IPA copied to clipboard.", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.btn_swap_vert:
                 View currentFocus = getCurrentFocus();
@@ -418,17 +485,21 @@ public class MainActivity extends AppCompatActivity
                 EditText in = (EditText) findViewById(R.id.input_field);
                 switch (currentFocus.getId()) {
                     case R.id.input_field:
+                        if (current_formatted_output.isEmpty()){
+                            Toast.makeText(getApplicationContext(), "Cannot edit output when its empty.", Toast.LENGTH_SHORT).show();
+                            break;
+                        }
                         myFocusField(out);
                         myRemoveFocusField(in);
-                        Toast.makeText(getApplicationContext(), "Swap to edit output.", Toast.LENGTH_SHORT).show();
-
+                        Toast.makeText(getApplicationContext(), "Editing output IPA.", Toast.LENGTH_SHORT).show();
                         break;
+
                     case R.id.output_field2:
                         myFocusField(in);
                         myRemoveFocusField(out);
-                        Toast.makeText(getApplicationContext(), "Swap to edit input.", Toast.LENGTH_SHORT).show();
-
+                        Toast.makeText(getApplicationContext(), "Editing input text.", Toast.LENGTH_SHORT).show();
                         break;
+
                     default:
                         Toast.makeText(getApplicationContext(), "Please focus somewhere first.", Toast.LENGTH_SHORT).show();
                 }
@@ -480,8 +551,6 @@ public class MainActivity extends AppCompatActivity
         // create an alert dialog
         AlertDialog alert = alertDialogBuilder.create();
         alert.show();
-
-
     }
 
     public void writeFile(String filename, String input_Field, String output_Field){
