@@ -75,8 +75,19 @@ public class TranscribeFragment extends Fragment {
         ((MainActivity)getActivity()).myColorTint();
 
         // Inflate the layout for this fragment
-
         View v = inflater.inflate(R.layout.fragment_transcribe, container, false);
+
+
+        // Set focus to the input field
+        EditText input_field = (EditText) getActivity().findViewById(R.id.input_field);
+        if (input_field!=null){
+            input_field.setFocusableInTouchMode(true);
+            input_field.requestFocus();
+        } else {
+            Log.d("...", "...");
+        }
+
+
         return v;
 
     }

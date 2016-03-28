@@ -43,7 +43,7 @@
 
                     <EditText
                         android:id="@+id/input_field"
-                        android:layout_marginTop="21dp"
+                        android:layout_marginTop="20dp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="left|top"
@@ -52,10 +52,10 @@
                         android:focusable="true"
                         android:focusableInTouchMode="true"
                         android:inputType="textMultiLine|textNoSuggestions"
-                        android:lineSpacingExtra="30dp"
+                        android:lineSpacingExtra="30sp"
+                        android:textSize="18sp"
                         android:textCursorDrawable="@drawable/cursor"
                         android:background="@android:color/transparent"
-                        android:textSize="18sp"
                         />
 
                     <EditText
@@ -64,11 +64,11 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="left|top"
                         android:gravity="top|left"
-                        android:text="zdrɑ.vzdvuj.tʲɛ"
                         android:background="@android:color/transparent"
-                        android:clickable="false"
                         android:inputType="textMultiLine|textNoSuggestions"
-                        android:lineSpacingExtra="32dp"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:lineSpacingExtra="32sp"
                         android:textSize="16sp"
                         android:textColor="@color/colorPrimary"
                         android:textCursorDrawable="@drawable/cursor"
@@ -95,7 +95,8 @@
                 android:orientation="horizontal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left|bottom">
+                android:layout_gravity="left|bottom"
+                android:visibility="gone">
 
             <ImageButton
                 android:layout_width="24dp"
@@ -124,6 +125,14 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="right|bottom">
 
+                <ImageButton
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:id="@+id/btn_swap_vert"
+                    android:background="@drawable/ic_swap_vert_black_24dp"
+                    android:onClick="buttonOnClick"
+                    android:layout_gravity="right|bottom"
+                    android:layout_margin="7dp"/>
 
                 <ImageButton
                     android:layout_width="24dp"
@@ -132,17 +141,17 @@
                     android:background="@drawable/ic_content_copy_white_24dp"
                     android:onClick="buttonOnClick"
                     android:layout_gravity="right|bottom"
-                    android:layout_margin="5dp"/>
+                    android:layout_margin="7dp"/>
 
                 <ImageButton
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:id="@+id/imageButton_save_trans"
                     android:background="@drawable/technology"
                     android:contentDescription="@string/save_file"
                     android:onClick="buttonOnClick"
                     android:layout_gravity="right|bottom"
-                    android:layout_margin="5dp"/>
+                    android:layout_margin="7dp"/>
             </LinearLayout>
 
         </FrameLayout>
