@@ -50,7 +50,6 @@ public class SavedFragment extends Fragment {
                     String line;
                     while ((line = br.readLine()) != null) {
                         file_content +=line;
-                        Log.d("myTag", "this line is read" + line);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
