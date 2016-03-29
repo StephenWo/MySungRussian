@@ -30,32 +30,21 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true" />
 
-
-        <FrameLayout
-            android:layout_width="match_parent"
+        <ImageView
+            android:id="@+id/imgimg"
+            android:layout_width="200dp"
             android:layout_height="200dp"
-            android:layout_centerHorizontal="true"
-            android:id="@+id/frameLayout2"
-            android:layout_above="@+id/btn_play">
+            android:layout_centerInParent="true"/>
 
-            <com.github.mikephil.charting.charts.LineChart
-                android:id="@+id/chart"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:layout_alignParentStart="true" />
-
-        </FrameLayout>
-
-        <FrameLayout
-            android:id="@+id/mySpectrumFrame"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Spectrogram"
+            android:layout_marginTop="77dp"
+            android:id="@+id/textView"
             android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true">
-
-
-        </FrameLayout>
+            android:layout_centerHorizontal="true" />
 
 
     </RelativeLayout>

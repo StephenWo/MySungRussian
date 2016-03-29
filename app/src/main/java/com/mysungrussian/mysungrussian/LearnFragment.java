@@ -2,9 +2,12 @@ package com.mysungrussian.mysungrussian;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
@@ -13,7 +16,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Environment;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +35,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.List;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.musicg.wave.Wave;
@@ -38,6 +42,9 @@ import com.musicg.wave.WaveHeader;
 import com.musicg.wave.extension.Spectrogram;
 
 import android.speech.SpeechRecognizer;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -192,7 +199,9 @@ public class LearnFragment extends Fragment {
     // onClick for the play button
     // Play the 1 sec .wav file recorded before...........
     public void onClickPlay (View v){
+        final Button btn_record = (Button) getActivity().findViewById(R.id.btn_record);
         final Button btn_play = (Button)getActivity().findViewById(R.id.btn_play);
+        btn_record.setClickable(false);
         btn_play.setClickable(false);
         btn_play.setAlpha(.5f);
 
@@ -200,6 +209,7 @@ public class LearnFragment extends Fragment {
         //onPlay(true);
         playRecording();
         btn_play.setClickable(true);
+        btn_record.setClickable(true);
         btn_play.setAlpha(1.0f);
 
         //wait 1 second and stop
@@ -219,7 +229,10 @@ public class LearnFragment extends Fragment {
     // Starts recording and stop after 1 sec, save to .wav file to be processed by musicg
     public void onClickRecord (View v){
         final Button btn_record = (Button) getActivity().findViewById(R.id.btn_record);
+        final Button btn_play = (Button)getActivity().findViewById(R.id.btn_play);
+
         btn_record.setClickable(false);
+        btn_play.setClickable(false);
         btn_record.setAlpha(.5f);
 
         //Start recording
@@ -231,6 +244,7 @@ public class LearnFragment extends Fragment {
             @Override
             public void run() {
                 btn_record.setClickable(true);
+                btn_play.setClickable(true);
                 btn_record.setAlpha(1.0f);
 
                 stopRecording();
@@ -352,111 +366,26 @@ public class LearnFragment extends Fragment {
         }
         // end normalization
 
-
         Log.d("Che", "Rendering spectrogram using SpectrogramView");
         SpectrogramView mView = new SpectrogramView(getActivity(), data3);
-        FrameLayout mLayout = (FrameLayout) getActivity().findViewById(R.id.mySpectrumFrame);
-        mLayout.removeAllViews();
-        FrameLayout.LayoutParams lop = new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
-        mLayout.addView(mView, 0, lop);
+        Bitmap bmp = mView.getBmp();
+        if (bmp == null){
+            Log.d("bmp", "..");
+        }
+        BitmapDrawable ob = new BitmapDrawable(getActivity().getResources(), bmp);
+
+        if (ob == null){
+            Log.d("ob", "..");
+        }
+
+        ImageView im = (ImageView) getActivity().findViewById(R.id.imgimg);
+        if (im == null){
+            Log.d("im", "..");
+        }
+        im.setBackground(ob);
 
     }
 
-
-    private static class SpectrogramView extends View {
-        private Paint paint = new Paint();
-        private Bitmap bmp;
-
-        public SpectrogramView(Context context, double [][] data) {
-            super(context);
-
-            if (data != null) {
-                paint.setStrokeWidth(1);
-                int width = data.length;
-                int height = data[0].length;    // Higher part of the frequency is always empty, so discard.
-
-                int[] arrayCol = new int[width*height];
-                int counter = 0;
-                for(int i = height-1; i >=0 ; i--) { //0 is top, want to start from bottom
-                    for(int j = 0; j < width; j++) {
-                        int value;
-                        int color;
-
-                        float hsv[] = new float[3];
-                        hsv[0] = (float)(1 - data[j][i]*data[j][i]) * 300;
-                        hsv[1] = (float) 1.0;   //saturation
-                        hsv[2] = (float) 0.5;   //value (brightness)
-
-                        //value = 255 - (int) (data[j][i] * 255);
-                        //color = (value << 16 | value << 8 | value | 255 << 24);
-
-                        color = Color.HSVToColor(hsv);
-                        //Log.d("!!!", "data="+data[j][i]+" hsv[0]="+hsv[0]+" color="+color);
-
-                        arrayCol[counter] = color;
-                        counter ++;
-                    }
-                }
-
-                //Calling createBitmap(int[] colors, int width, int height, Bitmap.Config config)
-                bmp = Bitmap.createBitmap(arrayCol, width, height, Bitmap.Config.ARGB_8888);
-                bmp = Bitmap.createScaledBitmap(bmp, 180, 180, false);
-                Log.d("Che", "width "+width+", height "+height);
-
-            } else {
-                System.err.println("Data Corrupt");
-            }
-
-            /*int xMarker = -1;
-            int yMarker = -1;
-
-            if (spectrogramData!=null){
-                int width=spectrogramData.length;
-                int height=spectrogramData[0].length;
-
-                //BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-                int[] arrayCol = new int[width*height];
-                int counter = 0;
-
-                for (int i=0; i<width; i++){
-                    if (i==xMarker){
-                        for (int j=0; j<height; j++){
-                            //bufferedImage.setRGB(i, j, 0xFF00);	// green
-                        }
-                    }
-                    else{
-                        for (int j=0; j<height; j++){
-                            int value;
-                            if (j==yMarker){
-                                value=0xFF0000;	// red
-                            }
-                            else{
-                                value=255-(int)(spectrogramData[i][j]*255);
-                            }
-                            //bufferedImage.setRGB(i, height-1-j, value<<16|value<<8|value);
-                            int color = (value<<16|value<<8|value|255<<24);
-                            arrayCol[counter] = color;
-                            counter ++;
-                        }
-                    }
-                }
-
-                //Calling createBitmap(int[] colors, int width, int height, Bitmap.Config config)
-                //宽和高反过来
-                bmp = Bitmap.createBitmap(arrayCol, height, width, Bitmap.Config.ARGB_8888);
-            }
-            else{
-                System.err.println("renderSpectrogramData error: Empty Wave");
-            }*/
-
-        }
-
-        @Override
-        protected void onDraw(Canvas canvas) {
-            super.onDraw(canvas);
-            canvas.drawBitmap(bmp, 0, 100, paint);
-        }
-    }
 
     public LearnFragment() {
         // Required empty public constructor
@@ -476,11 +405,6 @@ public class LearnFragment extends Fragment {
         super.onCreate(savedInstanceState);
         mFileName = Environment.getExternalStorageDirectory().getAbsolutePath();
         mFileName += "/audiorecordtest.raw";
-
-        /*int recBufSize = AudioRecord.getMinBufferSize(sampleRate, channelConfiguration, audioEncoding); // need to be larger than size of a frame
-        Log.d("Che", "recBufSize is "+recBufSize);
-        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfiguration, audioEncoding, recBufSize);
-        buffer = new byte[frameByteSize];*/
 
 
     }

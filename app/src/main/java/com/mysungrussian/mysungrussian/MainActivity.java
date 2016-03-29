@@ -404,7 +404,7 @@ public class MainActivity extends AppCompatActivity
                     return false;
                 }
 
-            });
+            }); //TODO: not finished here, does not provide possible IPAs in the edit tool bar yet
 
             // Put formatted input output into EditText
             input_field.setVisibility(View.VISIBLE);
